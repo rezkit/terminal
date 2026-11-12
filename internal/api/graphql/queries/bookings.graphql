@@ -1,0 +1,178 @@
+query ListBookings(
+  $organizationId: ID!
+  $filters: BookingFilters
+  $first: Int
+  $after: String
+  $sortBy: BookingListSort
+  $direction: SortDirection
+) {
+  bookings {
+    list(
+      organizationId: $organizationId
+      filters: $filters
+      first: $first
+      after: $after
+      sortBy: $sortBy
+      direction: $direction
+    ) {
+      totalCount
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      edges {
+        node {
+          id
+          reference
+          status
+          description
+          createdAt
+          customer {
+            givenName
+            familyName
+          }
+          totalPrice {
+            amount
+            currency
+          }
+          dates {
+            start
+          }
+        }
+      }
+    }
+  }
+}
+
+query GetBooking($id: ID!) {
+  bookings {
+    booking(id: $id) {
+      id
+      reference
+      status
+      description
+      currency
+      tags
+      createdAt
+      updatedAt
+      customer {
+        honorifics
+        givenName
+        familyName
+        email
+        telephone
+        address {
+          line1
+          line2
+          line3
+          city
+          state
+          postalCode
+          country
+        }
+      }
+      dates {
+        start
+        end
+      }
+      totalPrice {
+        amount
+        currency
+      }
+      totalPaid {
+        amount
+        currency
+      }
+      outstandingBalance {
+        amount
+        currency
+      }
+      passengers {
+        id
+        honorifics
+        givenName
+        familyName
+        email
+        dateOfBirth
+        cancelledAt
+      }
+      productReservations {
+        id
+        reference
+        description
+        status
+        statusMessage
+        quantity
+        serviceStart
+        serviceEnd
+        balanceDue
+        price {
+          amount
+          currency
+        }
+        product {
+          name
+          category
+        }
+        passengers {
+          id
+        }
+        ... on TransportReservation {
+          slices {
+            id
+            ticketClass
+            ticketNumber
+            seatAllocation
+            passenger {
+              id
+            }
+            slice {
+              id
+              name
+              mode
+              intermediateStop
+              carrier {
+                name
+                code
+              }
+              departure {
+                ...SliceEnd
+              }
+              arrival {
+                ...SliceEnd
+              }
+            }
+          }
+        }
+      }
+      transactions {
+        id
+        reference
+        description
+        category
+        status
+        createdAt
+        amount {
+          amount
+          currency
+        }
+      }
+      notes {
+        id
+        title
+        content
+        createdAt
+      }
+    }
+  }
+}
+
+fragment SliceEnd on TransportSliceTermination {
+  timestamp
+  stop {
+    code
+    name
+    city
+    timezone
+  }
+}

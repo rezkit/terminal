@@ -1,0 +1,5400 @@
+"""
+Indicates that an Input Object is a OneOf Input Object (and thus requires exactly one of its fields be provided).
+"""
+directive @oneOf on INPUT_OBJECT
+
+type AllocationInventory implements Inventory{
+	available: Int!
+	capacity: Int
+	id: String
+	type: InventoryKind!
+}
+
+"""
+## Inventory
+            Represents the inventory for an item, multiple types of inventory exist:
+            
+            * `FreeSellInventory`
+            * `AllocationInventory`
+            * `OnRequestInventory`
+            
+            All of which respond to the `type` field
+"""
+interface Inventory {
+"""
+## Inventory
+            Represents the inventory for an item, multiple types of inventory exist:
+            
+            * `FreeSellInventory`
+            * `AllocationInventory`
+            * `OnRequestInventory`
+            
+            All of which respond to the `type` field
+"""
+	type: InventoryKind!
+}
+
+"""
+Product Inventory Kind
+"""
+enum InventoryKind {
+"""
+Free-sell product / unlimited inventory
+"""
+	FREE_SELL
+"""
+Pre-allocated inventory. Use `available` to determine stock
+"""
+	ALLOCATION
+"""
+Product may be sold but out-of-band verification of inventory is required
+                    The value of `errata` should provide details of the verification required
+"""
+	ON_REQUEST
+}
+
+type FreeSellInventory implements Inventory{
+	type: InventoryKind!
+}
+
+type OnRequestInventory implements Inventory{
+	errata: String!
+	type: InventoryKind!
+}
+
+type Subscription {
+	id: ID
+}
+
+type TextValidation implements CakeValidation{
+"""
+Minimum number of characters
+"""
+	minLength: Int
+"""
+Maximum number of characters
+"""
+	maxLength: Int
+"""
+Enables e-mail address validation
+"""
+	email: Boolean
+	type: String!
+}
+
+interface CakeValidation {
+	type: String!
+}
+
+type NumberValidation implements CakeValidation{
+	minValue: Float
+	maxValue: Float
+	precision: Int
+	type: String!
+}
+
+type SelectionValidation implements CakeValidation{
+	values: [String!]!
+	minCount: Int
+	maxCount: Int
+	type: String!
+}
+
+"""
+Fetches an object given its ID
+"""
+interface Node {
+"""
+Fetches an object given its ID
+"""
+	id: ID!
+}
+
+type Package implements Node & ActivityLogged & Product{
+	activity(
+		after: String
+		first: Int
+		before: String
+		last: Int
+	): ActivityConnection!
+	organization: Organization!
+"""
+The provider from which this product is sourced, empty if the product is internal
+"""
+	provider: ProductProvider
+	name: String!
+"""
+    An optional group-name to associated related or similar products,
+                        when empty the product does not belong to any group
+"""
+	groupName: String
+	element: String
+"""
+An optional long-form product description
+"""
+	description: String
+"""
+    A categorization for the product,
+                        this may be a system-default category or a custom category for the organization
+"""
+	category: String! @deprecated(reason: "Deprecated, use `__typename` instead")
+"""
+    An external identifier which uniquely identifies the product within the context of the provider.
+                        May be an empty string for internal products, but must be set for external products with a value unique
+                        within a single provider.
+"""
+	externalId: String
+	priceDimensions: [ProductPriceDimension!]
+	errata: [ProductErratum!]
+	prices: [ProductPrice!]
+"""
+    The inventory for the product. 
+                        Multiple inventory types exist, see the documentation on `Inventory` for details.
+"""
+	inventory: Inventory!
+"""
+    A pair of dates which contain the dates during which the product is fulfilled.
+                        
+                        This may be a pair of dates within which a product can be made available, or a fix pair of dates
+                        already existent on the on the product. This value may be empty if there is no date.
+"""
+	dates: DateRange
+	url: String
+	imageUrl: String
+"""
+Integer range representing the number of passengers which can be allocated to this product
+"""
+	occupancy: IntRange
+"""
+The constraints for the product
+"""
+	constraints: ProductConstraints
+"""
+Reservations made of this product as part of a Booking
+"""
+	reservations: [BookingProductReservation!]
+	taxonomies: [ProductTaxonomy!]
+"""
+Unique identifier. Unique between all items including those of different types
+"""
+	id: ID!
+"""
+Timestamp at which this item was initially created
+"""
+	createdAt: Timestamp!
+"""
+Timestamp of the most recent modification to this item
+"""
+	updatedAt: Timestamp!
+	cakes: [Cake!]
+"""
+Get the price for a product in a specific currency
+"""
+	price(
+"""
+Currency Code
+"""
+		currency: String
+	): ProductPrice
+	tags: [String!]
+}
+
+interface ActivityLogged {
+	activity(
+		after: String
+		first: Int
+		before: String
+		last: Int
+	): ActivityConnection!
+}
+
+type ActivityConnection {
+"""
+Edges of the connection
+"""
+	edges: [ActivityConnectionEdge]
+"""
+Page info of the connection
+"""
+	pageInfo: PageInfo
+"""
+Total count of items in the connection.
+"""
+	totalCount: Int
+}
+
+type ActivityConnectionEdge {
+"""
+Node of the Edge
+"""
+	node: ActivityLog
+"""
+The edge cursor
+"""
+	cursor: String!
+}
+
+type ActivityLog {
+"""
+Organization to which this customer record belongs
+"""
+	organization: Organization!
+"""
+If the activity originated from an external application, details of the application here.
+"""
+	application: OAuthClient
+"""
+Activity event
+"""
+	event: ActivityEvent!
+"""
+Unique identifier. Unique between all items including those of different types
+"""
+	id: ID!
+"""
+Timestamp at which this item was initially created
+"""
+	createdAt: Timestamp!
+"""
+Timestamp of the most recent modification to this item
+"""
+	updatedAt: Timestamp!
+	target: Node
+	actor: ActivityActor
+	root: Node
+}
+
+"""
+`Organization` represents a top-level business-unit.
+            All resources are owned by an organization.
+            While a `User` may have access to more than one `Organization`, all queries and mutations
+            must be scoped to a single `Organization`.
+"""
+type Organization {
+"""
+Organization Name
+"""
+	name: String!
+	settings: OrganizationSettings!
+	logtoId: ID!
+	environment: Environment!
+"""
+Unique identifier. Unique between all items including those of different types
+"""
+	id: ID!
+"""
+Timestamp at which this item was initially created
+"""
+	createdAt: Timestamp!
+"""
+Timestamp of the most recent modification to this item
+"""
+	updatedAt: Timestamp!
+"""
+Users who are part of this organization
+"""
+	users: [OrganizationMember!]
+"""
+Invitations to this organization
+"""
+	invites: [Invite!]
+"""
+Get an embed URL for the given external tool ID.
+                    
+"""
+	tool(
+		toolId: String!
+	): String!
+}
+
+type OrganizationSettings {
+	product: OrganizationProductSettings!
+	passenger: OrganizationPassengerSettings!
+"""
+Available currencies for the organization
+"""
+	currencies: CurrencySettings!
+}
+
+type OrganizationProductSettings {
+"""
+Available product categories
+"""
+	categories: [String!]!
+}
+
+type OrganizationPassengerSettings {
+"""
+Available honorifics for passengers
+"""
+	honorifics: [String!]!
+}
+
+type CurrencySettings {
+"""
+The currency codes (e.g. GBP, USD, EUR) enabled for the organization
+"""
+	enabled: [String!]!
+"""
+The default currency code. Must be one of the enabled currencies
+"""
+	default: String!
+}
+
+enum Environment {
+	Sandbox
+	Production
+}
+
+scalar Timestamp
+
+type OrganizationMember {
+	id: ID!
+	email: String!
+	name: String!
+	avatar: String
+	createdAt: Timestamp!
+	updatedAt: Timestamp!
+"""
+The most recent sign-in by the user
+"""
+	lastSignInAt: Timestamp
+	suspended: Boolean!
+	roles: [IDNamePair!]
+}
+
+"""
+An item which contains an ID and a Name which labels it.
+"""
+type IDNamePair {
+	id: ID!
+	name: String!
+}
+
+type Invite {
+	id: ID!
+	email: String!
+	status: InvitationStatus!
+	createdAt: Timestamp!
+	updatedAt: Timestamp!
+	expiresAt: Timestamp!
+	invitedBy: User!
+	organization: Organization!
+}
+
+enum InvitationStatus {
+	PENDING
+	ACCEPTED
+	EXPIRED
+	REVOKED
+}
+
+type User {
+	name: String!
+	email: String!
+	roles: [String!]!
+	settings: UserSettings!
+"""
+Unique identifier. Unique between all items including those of different types
+"""
+	id: ID!
+"""
+Timestamp at which this item was initially created
+"""
+	createdAt: Timestamp!
+"""
+Timestamp of the most recent modification to this item
+"""
+	updatedAt: Timestamp!
+	organization: Organization @deprecated(reason: "Users may now belong to multiple organizations. This field now always returns false.")
+}
+
+type UserSettings {
+"""
+The user's default currency
+"""
+	default_currency: String
+}
+
+type OAuthClient {
+	id: ID!
+	name: String!
+	organization: Organization
+	publicId: String!
+	redirectUris: [String!]
+"""
+Short description of the application
+"""
+	description: String
+"""
+The application's home page
+"""
+	homepageUrl: String
+"""
+The application's privacy policy
+"""
+	privacyPolicyUrl: String
+"""
+The application's terms of service
+"""
+	termsOfServiceUrl: String
+"""
+An email address or URL for contacting the application's developer
+"""
+	supportContact: String
+"""
+Whether RezKit has verified the application
+"""
+	verified: Boolean!
+"""
+When the client was registered
+"""
+	createdAt: Timestamp!
+"""
+When the client was disabled, if it has been
+"""
+	disabledAt: Timestamp
+	allowedGrantTypes: [OAuthGrantType!]!
+"""
+Whether the redirect URI is registered for this client
+"""
+	acceptsRedirectUri(
+		redirectUri: String!
+	): Boolean!
+}
+
+enum OAuthGrantType {
+"""
+Authorization Code (Interactive user login)
+"""
+	AUTHORIZATION_CODE
+"""
+Refresh token, usually combined with `authorization_code` to allow tokens to be updated in the background
+"""
+	REFRESH_TOKEN
+"""
+Client Credentials (application login, with no user). The resulting tokens can access all organizations, so only super-users may create clients with this grant.
+"""
+	CLIENT_CREDENTIALS
+}
+
+type ActivityEvent {
+"""
+The event type, depending on this value the parameters of `properties` may change.
+"""
+	name: String!
+"""
+The payload properties of the event, encoded as a JSON string (dynamic)
+"""
+	properties: JSON!
+}
+
+"""
+The `JSON` type represents a string for which the contents must be a valid JSON document.
+            
+"""
+scalar JSON
+
+union ActivityActor =User
+
+"""
+Information about pagination in a connection.
+"""
+type PageInfo {
+"""
+When paginating forwards, are there more items?
+"""
+	hasNextPage: Boolean!
+"""
+When paginating backwards, are there more items?
+"""
+	hasPreviousPage: Boolean!
+"""
+When paginating backwards, the cursor to continue.
+"""
+	startCursor: String
+"""
+When paginating forwards, the cursor to continue.
+"""
+	endCursor: String
+}
+
+interface Product {
+	organization: Organization!
+	provider: ProductProvider
+	name: String!
+	groupName: String
+	element: String
+	description: String
+	category: String!
+	externalId: String
+	priceDimensions: [ProductPriceDimension!]
+	errata: [ProductErratum!]
+	prices: [ProductPrice!]
+	inventory: Inventory!
+	dates: DateRange
+	url: String
+	imageUrl: String
+	occupancy: IntRange
+	constraints: ProductConstraints
+	reservations: [BookingProductReservation!]
+	taxonomies: [ProductTaxonomy!]
+	id: ID!
+	createdAt: Timestamp!
+	updatedAt: Timestamp!
+	cakes: [Cake!]
+	price(
+		currency: String
+	): ProductPrice
+	tags: [String!]
+}
+
+type ProductProvider {
+	organization: Organization!
+	name: String!
+	descriptorUrl: String!
+	enabled: Boolean!
+"""
+Timestamp of the most recent successful product sync, empty if never synced
+"""
+	lastSyncAt: Timestamp
+"""
+Unique identifier. Unique between all items including those of different types
+"""
+	id: ID!
+"""
+Timestamp at which this item was initially created
+"""
+	createdAt: Timestamp!
+"""
+Timestamp of the most recent modification to this item
+"""
+	updatedAt: Timestamp!
+}
+
+"""
+The price dimension on a product is used to specify how the pricing for the product is given.
+            
+            By default, prices are _per-reservation_, meaning the price given is set regardless of the conditions of reservation.
+            Prices can also be _per-passenger_, meaning the price given is based on a single passenger and the total price will be
+            multiplied by the number of passengers.
+            
+            Price dimensions can be combined to create more complex pricing models, such as combining a time-based price with a
+            per-passenger price, e.g. `[PASSENGER, TIME_DAY]` would indicate a per-person-per-day price.
+"""
+enum ProductPriceDimension {
+"""
+Product pricing is set per reservation. This is the default case.
+"""
+	RESERVATION
+"""
+Product pricing is set per passenger allocated to the reservation.
+"""
+	PASSENGER
+"""
+Product pricing is set based on the duration of the reservation, per day.
+"""
+	TIME_DAY
+"""
+Product pricing is set based on the duration of the reservation, per hour.
+"""
+	TIME_HOUR
+}
+
+type ProductErratum {
+	title: String!
+	content: String!
+}
+
+type ProductPrice {
+	product: Product!
+	currency: String!
+	depositValue: Int
+"""
+Balance due for the full `price`, if in the past then full price is always due
+"""
+	balanceDue: Timestamp
+"""
+Unique identifier. Unique between all items including those of different types
+"""
+	id: ID!
+"""
+Timestamp at which this item was initially created
+"""
+	createdAt: Timestamp!
+"""
+Timestamp of the most recent modification to this item
+"""
+	updatedAt: Timestamp!
+	amount: Int!
+}
+
+type DateRange {
+	start: Timestamp
+	end: Timestamp
+	duration: Int
+	kind: DateRangeKind
+}
+
+enum DateRangeKind {
+"""
+Fixed departure date
+"""
+	FIXED
+"""
+Flexible dates with a fixed duration
+"""
+	FIXED_DURATION
+"""
+Flexible dates with flexible duration
+"""
+	FLEXIBLE
+"""
+For when no dates are provided
+"""
+	NO_DATE
+}
+
+type IntRange {
+	minimum: Int!
+	maximum: Int!
+}
+
+"""
+Additional constraints which apply to the booking of a product.
+            These constraints contain parameters of rules to be applied to making a reservation for a product.
+"""
+type ProductConstraints {
+"""
+Minimum age of any passenger at start of a reservation, in years
+"""
+	minimumAge: Int
+"""
+Maximum age of any passenger at the start of a reservation, in years
+"""
+	maximumAge: Int
+}
+
+interface BookingProductReservation {
+	organization: Organization!
+	booking: Booking!
+	product: Product!
+	reference: String
+	serviceStart: Timestamp
+	serviceEnd: Timestamp
+	quantity: Int!
+	statusMessage: String
+	description: String
+	passengers: [Passenger!]
+	notes: [Note!]
+	balanceDue: Timestamp
+	status: BookingStatus!
+	id: ID!
+	createdAt: Timestamp!
+	updatedAt: Timestamp!
+	price: Money
+	tags: [String!]
+	confirmable: Boolean!
+	cancellable: Boolean!
+	validations: [ValidationError!]
+}
+
+type Booking implements Node & ActivityLogged & Caked{
+	activity(
+		after: String
+		first: Int
+		before: String
+		last: Int
+	): ActivityConnection!
+"""
+Status of a booking as a whole
+"""
+	status: BookingStatus!
+"""
+A human-readable reference to the booking which is unique within an Organization
+"""
+	reference: String!
+"""
+A short, editable description of the booking
+"""
+	description: String
+	organization: Organization!
+"""
+An optional reference to a customer who owns the Booking
+"""
+	customer: Customer
+	passengers(
+"""
+Filter passengers for this reservation
+"""
+		filters: PassengerFilters
+		sortBy: PassengerSortBy
+		direction: SortDirection
+	): [Passenger!]!
+	notes: [Note!]
+"""
+Sale currency for this booking
+"""
+	currency: String!
+"""
+Files attached to the booking
+"""
+	files: [File!]
+"""
+Transactions Widget URL
+"""
+	transactionsWidgetUrl: String
+"""
+Contract information for recurring payments
+"""
+	contract: BookingContract @deprecated(reason: "We want to list all contracts instead")
+"""
+Unique identifier. Unique between all items including those of different types
+"""
+	id: ID!
+"""
+Timestamp at which this item was initially created
+"""
+	createdAt: Timestamp!
+"""
+Timestamp of the most recent modification to this item
+"""
+	updatedAt: Timestamp!
+"""
+Total price for the booking
+"""
+	totalPrice(
+"""
+Include only **Confirmed** reservations as part of the total. When set to false items which are pending or
+                            errored will also be included in the total. Cancelled items are never included in the total.
+"""
+		onlyConfirmed: Boolean
+	): Money!
+"""
+Outstanding balance for the booking
+"""
+	outstandingBalance: Money!
+"""
+Transactions made against this booking
+"""
+	transactions(
+"""
+Return only payments of the given status
+"""
+		statuses: [PaymentStatus!]
+		sortBy: TransactionSortBy
+		direction: SortDirection
+	): [Transaction!]
+	tags: [String!]
+"""
+Cakes
+"""
+	cakes: [Cake!]
+"""
+ID of the payment account
+"""
+	paymentAccount: PaymentAccount
+"""
+Validate a discount ID against the booking
+"""
+	validateDiscount(
+		id: ID!
+	): BookingDiscount
+"""
+Validate a discount code against the booking
+"""
+	validateDiscountCode(
+"""
+Discount Code
+"""
+		code: String!
+	): BookingDiscount
+"""
+Reservations which compose this booking
+                    
+"""
+	productReservations(
+		filters: ProductReservationFilters
+		sortBy: ProductReservationSort
+		direction: SortDirection
+	): [BookingProductReservation!]!
+"""
+Get the total amount paid on the booking.
+                    
+"""
+	totalPaid: Money!
+"""
+List of all contracts associated with a booking
+"""
+	contracts: [BookingContract]
+"""
+Dates over which the booking is operating, giving the lower and upper bound of services which are included in the booking.
+                    
+"""
+	dates(
+"""
+Include only `CONFIRMED` reservations when computing the dates for the booking. By default `CONFIRMED`, `PENDING`, and `PROCESSING` reservations are included.
+                            
+"""
+		onlyConfirmed: Boolean
+	): BookingDates!
+}
+
+"""
+Caked Entity
+"""
+interface Caked {
+"""
+Caked Entity
+"""
+	cakes: [Cake!]
+}
+
+type Cake {
+"""
+Ancestor IDs in order of dependency.
+"""
+	ancestry: [ID!]
+	scope: JSON!
+	type: CakeType!
+	name: String!
+	active: Boolean!
+	isDeadlineEnforced: Boolean!
+	presentation: JSON!
+	validation: CakeValidation
+	requiredBy: Timestamp
+"""
+Determines if this field *must* always have a valid value.
+                    When `false` the field is required to have a valid value on or before the deadline defined by `requiredBy`.
+                    When `true` the field is *always* required to have a valid value.
+"""
+	required: Boolean!
+	value: String
+"""
+Unique identifier. Unique between all items including those of different types
+"""
+	id: ID!
+"""
+Timestamp at which this item was initially created
+"""
+	createdAt: Timestamp!
+"""
+Timestamp of the most recent modification to this item
+"""
+	updatedAt: Timestamp!
+}
+
+enum CakeType {
+	Text
+	Number
+	Boolean
+	Selection
+	Section
+}
+
+enum BookingStatus {
+	ARCHIVED
+	CANCELLED
+	CANCELLING
+	CONFIRMED
+	ERROR
+	ON_HOLD
+	PENDING
+	PROCESSING
+	WAITLISTED
+}
+
+"""
+`Customer` represents CRM customer, it assumes no uniqueness
+            of any set of values between different customers, except in the case of a link to an external CRM.
+"""
+type Customer implements Node & ActivityLogged & Caked{
+	activity(
+		after: String
+		first: Int
+		before: String
+		last: Int
+	): ActivityConnection!
+"""
+Organization to which this customer record belongs
+"""
+	organization: Organization!
+"""
+Given name of the customer
+"""
+	givenName: String!
+"""
+Family name of the customer
+"""
+	familyName: String!
+"""
+An optional name field for the customer, such as a nickname, to be used in correspondence
+"""
+	knownAs: String
+"""
+E-mail address for the customer. Must be a valid e-mail address
+"""
+	email: String!
+"""
+Primary telephone number for the customer
+"""
+	telephone: String
+"""
+Timestamp of when this customer was last checked for duplicates
+"""
+	duplicatesCheckedAt: Timestamp
+"""
+Postal address for the customer
+"""
+	address: Address
+"""
+Customer additional names
+"""
+	additionalNames: String
+"""
+Customer honorifics ('Mr', 'さん', '先生', etc.)
+"""
+	honorifics: String
+"""
+Customer date of birth (date only)
+"""
+	dateOfBirth: Timestamp
+"""
+Customer Sex
+"""
+	sex: Sex
+"""
+Customer's Bookings
+"""
+	bookings: [Booking!]
+	notes: [Note!]
+"""
+Unique identifier. Unique between all items including those of different types
+"""
+	id: ID!
+"""
+Timestamp at which this item was initially created
+"""
+	createdAt: Timestamp!
+"""
+Timestamp of the most recent modification to this item
+"""
+	updatedAt: Timestamp!
+"""
+Full name of the customer (computed)
+"""
+	name: String!
+	firstName: String! @deprecated(reason: "Use `givenName` instead")
+	lastName: String! @deprecated(reason: "Use `familyName` instead")
+	tags: [String!]
+"""
+Cakes
+"""
+	cakes: [Cake!]
+"""
+List of customers which are possible duplicates of this one.
+                    
+"""
+	duplicates(
+"""
+Minimum match score required for a customer to be considered a potential duplicate.
+"""
+		min_score: Float!
+"""
+Maximum number of candidates to return
+"""
+		limit: Int!
+	): [CustomerDuplicateCandidate!]
+}
+
+"""
+`Address` represents a postal address.
+"""
+type Address {
+	line1: String!
+	line2: String
+	line3: String
+	city: String!
+	state: String
+"""
+ISO country code
+"""
+	country: String!
+	postalCode: String!
+}
+
+enum Sex {
+	MALE
+	FEMALE
+}
+
+"""
+Note allows arbitrary text notes to be added to supported entities. A note is attached to exactly one entity.
+            The note content is encrypted at-rest and is suitable for sensitive content.
+"""
+type Note implements Node & ActivityLogged{
+	activity(
+		after: String
+		first: Int
+		before: String
+		last: Int
+	): ActivityConnection!
+"""
+Note title (plaintext)
+"""
+	title: String!
+"""
+Note body content
+"""
+	content: String!
+"""
+Unique identifier. Unique between all items including those of different types
+"""
+	id: ID!
+"""
+Timestamp at which this item was initially created
+"""
+	createdAt: Timestamp!
+"""
+Timestamp of the most recent modification to this item
+"""
+	updatedAt: Timestamp!
+}
+
+type CustomerDuplicateCandidate {
+	score: Float!
+	customer: Customer!
+}
+
+input PassengerFilters {
+	givenName: StringFilter
+	familyName: StringFilter
+	additionalNames: StringFilter
+	email: StringFilter
+	dateOfBirth: TimestampFilter
+	booking: BookingFilters
+	reservations: ProductReservationFilters
+	firstName: StringFilter
+	lastName: StringFilter
+	id: IDsFilter
+	createdAt: TimestampFilter
+	updatedAt: TimestampFilter
+}
+
+"""
+Filter a string field by a given value and operation.
+            All filter operations are case-insensitive.
+"""
+input StringFilter {
+"""
+Filter a string field by a given value and operation.
+            All filter operations are case-insensitive.
+"""
+	operation: StringFilterOperation
+"""
+Filter a string field by a given value and operation.
+            All filter operations are case-insensitive.
+"""
+	value: String
+}
+
+"""
+Filter criteria for a `String` field. All operations are case-insensitive
+"""
+enum StringFilterOperation {
+"""
+Values match
+"""
+	EQUALS
+"""
+Values starting with the given value
+"""
+	STARTS_WITH
+"""
+Values ending with the given value
+"""
+	ENDS_WITH
+"""
+Values containing the given value
+"""
+	CONTAINS
+}
+
+input TimestampFilter {
+	since: Timestamp
+	until: Timestamp
+}
+
+input BookingFilters {
+	tags: TagsFilter
+	currency: StringChoiceFilter
+	reference: StringFilter
+	description: StringFilter
+	passengers: PassengerFilters
+	customer: CustomerFilters
+	productReservations: ProductReservationFilters
+	status: BookingStatusFilter
+	id: IDsFilter
+	createdAt: TimestampFilter
+	updatedAt: TimestampFilter
+}
+
+input TagsFilter {
+	include: [String!]
+	exclude: [String!]
+	match: TagMatchType
+}
+
+enum TagMatchType {
+	ANY
+	ALL
+}
+
+input StringChoiceFilter {
+	operation: StringChoiceFilterOperation!
+	values: [String!]
+}
+
+enum StringChoiceFilterOperation {
+"""
+Include the specified values
+"""
+	INCLUDE
+"""
+Exclude the specified values
+"""
+	EXCLUDE
+}
+
+input CustomerFilters {
+	givenName: StringFilter
+	familyName: StringFilter
+	additionalNames: StringFilter
+	email: StringFilter
+	address: AddressFilter
+	firstName: StringFilter
+	lastName: StringFilter
+	id: IDsFilter
+	createdAt: TimestampFilter
+	updatedAt: TimestampFilter
+}
+
+input AddressFilter {
+	line1: StringFilter
+	postalCode: StringFilter
+	state: StringFilter
+	city: StringFilter
+	country: StringChoiceFilter
+}
+
+"""
+Filter based on items which have one of the provided IDs
+"""
+input IDsFilter {
+"""
+Filter based on items which have one of the provided IDs
+"""
+	ids: [ID]
+}
+
+input ProductReservationFilters {
+	product: ProductFilters
+	booking: BookingFilters
+	status: BookingStatusFilter
+	passengers: PassengerFilters
+	reference: StringFilter
+	description: StringFilter
+	serviceStart: TimestampFilter
+	serviceEnd: TimestampFilter
+	balanceDue: TimestampFilter
+	id: IDsFilter
+	createdAt: TimestampFilter
+	updatedAt: TimestampFilter
+}
+
+input ProductFilters {
+	tags: TagsFilter
+	provider: ProviderFilters
+	name: StringFilter
+	groupName: StringFilter
+	category: StringChoiceFilter
+	description: StringFilter
+	dates: DateRangeFilter
+	prices: PriceFilterInput
+	taxonomies: [TaxonomyFilter!]
+	element: StringFilter
+	id: IDsFilter
+	createdAt: TimestampFilter
+	updatedAt: TimestampFilter
+}
+
+input ProviderFilters {
+	id: IDsFilter
+	name: StringFilter
+	descriptorUrl: StringFilter
+	credentialId: StringFilter
+	createdAt: TimestampFilter
+	updatedAt: TimestampFilter
+}
+
+input DateRangeFilter {
+	start: TimestampFilter
+	end: TimestampFilter
+	kind: KindFilter
+}
+
+input KindFilter {
+	value: DateRangeKind
+}
+
+input PriceFilterInput {
+	currency: String!
+	value: NumericFilter
+}
+
+input NumericFilter {
+	minimum: Float
+	maximum: Float
+}
+
+input TaxonomyFilter {
+	key: String!
+	value: String!
+}
+
+input BookingStatusFilter {
+	include: [BookingStatus!]
+	exclude: [BookingStatus!]
+}
+
+enum PassengerSortBy {
+"""
+Sort customers lexically by given name
+"""
+	GIVEN_NAME
+"""
+Sort customers lexically by familial name
+"""
+	FAMILY_NAME
+"""
+Sort passengers by full name
+"""
+	FULL_NAME
+"""
+Sort passengers by email
+"""
+	EMAIL
+"""
+Sort passengers chronologically by date of birth
+"""
+	DATE_OF_BIRTH
+"""
+Sort bookings chronologically by creation
+"""
+	CREATED_AT
+"""
+Sort bookings chronologically by latest modification
+"""
+	UPDATED_AT
+"""
+Sort passengers lexically by first name
+"""
+	FIRST_NAME @deprecated(reason: "Use `GIVEN_NAME` instead.")
+"""
+Sort passengers lexically by last name
+"""
+	LAST_NAME @deprecated(reason: "Use `FAMILY_NAME` instead.")
+}
+
+enum SortDirection {
+"""
+Sort in ascending order: lexically A-Z, chronologically oldest-first, numerically lowest-first
+"""
+	ASC
+"""
+Sort in descending order: lexically Z-A, chronologically newest-first, numerically highest-first
+"""
+	DESC
+}
+
+type Passenger implements Node & ActivityLogged{
+	activity(
+		after: String
+		first: Int
+		before: String
+		last: Int
+	): ActivityConnection!
+	organization: Organization!
+	booking: Booking!
+"""
+An optional reference to a CRM customer which maps to the Passenger
+"""
+	customer: Customer
+"""
+Passenger given name
+"""
+	givenName: String!
+"""
+Passenger family name
+"""
+	familyName: String!
+"""
+An optional name field for the passenger, such as a nickname, to be used in correspondence
+"""
+	knownAs: String
+"""
+An optional e-mail address for the Passenger
+"""
+	email: String
+"""
+Primary contact telephone for passenger
+"""
+	telephone: String
+"""
+Passenger date of birth (date only)
+"""
+	dateOfBirth: Timestamp
+"""
+Passenger Sex
+"""
+	sex: Sex
+"""
+Passenger additional names
+"""
+	additionalNames: String
+"""
+Passenger honorifics ('Mr', 'さん', '先生', etc.)
+"""
+	honorifics: String
+"""
+Timestamp of when the passenger was cancelled. If null the passenger is not cancelled
+"""
+	cancelledAt: Timestamp
+"""
+Details of the passport being used by the passenger to travel on this booking
+"""
+	passport: PassengerPassport
+	reservations: [BookingProductReservation!]
+"""
+Notes attached to the passenger
+"""
+	notes: [Note!]
+"""
+Files attached to the passenger
+"""
+	files: [File!]
+"""
+Unique identifier. Unique between all items including those of different types
+"""
+	id: ID!
+"""
+Timestamp at which this item was initially created
+"""
+	createdAt: Timestamp!
+"""
+Timestamp of the most recent modification to this item
+"""
+	updatedAt: Timestamp!
+	cakes: [Cake!]
+	firstName: String! @deprecated(reason: "Use `givenName` instead")
+	lastName: String! @deprecated(reason: "Use `familyName` instead")
+	name: String!
+	tags: [String!]
+}
+
+"""
+`Passport` represents the passport a passenger will use to travel on their booking.
+            A passenger may have one passport per booking.
+            All passport data is securely encrypted at-rest and thus cannot be searched.
+"""
+type PassengerPassport {
+"""
+Passport Number
+"""
+	number: String
+"""
+Timestamp of when the passport was issued (usually a date)
+"""
+	issuedAt: Timestamp
+"""
+Timestamp of when the passport expires/expired (usually a date)
+"""
+	expiresAt: Timestamp
+"""
+The place in which the passport was issued. (e.g. A Consulate, National Government etc.)
+"""
+	placeOfIssue: String
+"""
+The ISO country code of the country which the passport is issued by
+"""
+	countryCode: String
+}
+
+"""
+File Attachment
+            Files can be attached to supported entities. There are no limits or restrictions on file sizes or content types.
+"""
+type File {
+"""
+User-friendly file title
+"""
+	title: String!
+"""
+Original name of the uploaded file
+"""
+	filename: String!
+"""
+File MIME type
+"""
+	contentType: String!
+"""
+File size (bytes)
+"""
+	size: Int!
+"""
+File download link. Download links are ephemeral
+"""
+	url: String!
+"""
+Unique identifier. Unique between all items including those of different types
+"""
+	id: ID!
+"""
+Timestamp at which this item was initially created
+"""
+	createdAt: Timestamp!
+"""
+Timestamp of the most recent modification to this item
+"""
+	updatedAt: Timestamp!
+}
+
+"""
+Represents data about the contract which is used for taking contract/recurring payments. All data comes from the payment provider.
+            
+"""
+type BookingContract {
+	id: ID!
+"""
+Currency for contract payments
+                    
+"""
+	currency: String!
+"""
+Amount to be charged for each payment
+                    
+"""
+	amount: Float!
+"""
+Account setup for contract (if present)
+                    
+"""
+	account: BookingAccount
+"""
+Timestamp when the next payment will be taken
+"""
+	nextCharge: Timestamp
+"""
+Frequency of contract payments
+"""
+	frequency: BookingContractFrequency
+"""
+Number of payments to be taken
+"""
+	occurrences: Int
+"""
+Number of charges made
+"""
+	chargeCount: Int
+"""
+Current status of the contract
+"""
+	status: BookingContractStatus!
+}
+
+"""
+Shuttle account linked to a booking contract.
+            
+"""
+type BookingAccount {
+	id: String!
+	name: String!
+	code: String!
+	crm: String!
+	status: String!
+}
+
+enum BookingContractFrequency {
+"""
+Weekly payments (same day of each calendar week)
+"""
+	WEEKLY
+"""
+Fortnightly payments (same day of every other calendar week)
+"""
+	FORTNIGHTLY
+"""
+Monthly payments (same date each calendar month)
+"""
+	MONTHLY
+"""
+Bi-monthly payments (Same datee every other calendar month)
+"""
+	BIMONTHY
+"""
+Annual payments (same date each calendar year)
+"""
+	ANNUALLY
+}
+
+enum BookingContractStatus {
+"""
+Contract is currently active
+"""
+	ACTIVE
+"""
+Contract is cancelled.
+"""
+	CANCELLED
+"""
+Contract is completed, all payments have captured
+"""
+	COMPLETED
+"""
+The contract is in the process of being cancelled
+"""
+	CANCELLING
+"""
+Contract is currently failing -- Payments have failed to process but are being retried.
+"""
+	FAILING
+"""
+The contract has been paused
+"""
+	SUSPENDED
+}
+
+"""
+Monetary value
+"""
+type Money {
+"""
+Currency Code
+"""
+	currency: String!
+"""
+Monetary amount represented as an integer of the smallest currency denomination
+"""
+	amount: Int!
+}
+
+enum PaymentStatus {
+"""
+Pending Payment
+"""
+	PENDING
+"""
+Confirmed Payment
+"""
+	CONFIRMED
+"""
+Payment is void
+"""
+	VOID
+"""
+The payment was successful, but has since been refunded
+"""
+	REFUNDED
+"""
+The payment failed to authorize or capture
+"""
+	FAILED
+"""
+The payment has been authorized but not yet captured
+"""
+	AUTHORIZED
+}
+
+enum TransactionSortBy {
+	AMOUNT
+	STATUS
+	ID
+	CREATED_AT
+	UPDATED_AT
+}
+
+type Transaction {
+	organization: Organization!
+	booking: Booking!
+	category: TransactionCategory!
+	status: PaymentStatus!
+	reference: String
+"""
+An optional description relating to this transaction
+"""
+	description: String
+"""
+A URL which will be sent updates about this specific transaction
+"""
+	callbackUrl: String
+"""
+Unique identifier. Unique between all items including those of different types
+"""
+	id: ID!
+"""
+Timestamp at which this item was initially created
+"""
+	createdAt: Timestamp!
+"""
+Timestamp of the most recent modification to this item
+"""
+	updatedAt: Timestamp!
+	amount: Money
+}
+
+enum TransactionCategory {
+	CARD
+	CASH
+	INTERNAL_TRANSFER
+	BANK_TRANSFER
+}
+
+type PaymentAccount {
+	id: ID!
+	lastTransactedAt: Timestamp
+	lastTransactionReference: ID
+}
+
+type BookingDiscount {
+	discount: Discount!
+	value: Money!
+}
+
+type Discount implements Product{
+	organization: Organization!
+"""
+Discounts are also products, every discount is set up as a product which can be added to bookings.
+"""
+	product: Product!
+	code: String!
+	name: String!
+	value: Int!
+	isPercentage: Boolean!
+	isPerPassenger: Boolean!
+	isExclusive: Boolean!
+	maximumUses: Int
+	validFrom: Timestamp
+	validTo: Timestamp
+"""
+The ID of the discount's product, which is also the ID of its reservations.
+"""
+	id: ID!
+"""
+Timestamp at which this item was initially created
+"""
+	createdAt: Timestamp!
+"""
+Timestamp of the most recent modification to this item
+"""
+	updatedAt: Timestamp!
+	provider: ProductProvider
+	groupName: String
+	element: String
+	description: String
+	category: String! @deprecated(reason: "Deprecated, use `__typename` instead")
+	externalId: String
+	priceDimensions: [ProductPriceDimension!]
+	errata: [ProductErratum!]
+	prices: [ProductPrice!]
+	inventory: Inventory!
+	dates: DateRange
+	url: String
+	imageUrl: String
+	occupancy: IntRange
+	constraints: ProductConstraints
+	reservations: [BookingProductReservation!]
+	taxonomies: [ProductTaxonomy!]
+	cakes: [Cake!]
+	tags: [String!]
+"""
+Get the price for a product in a specific currency
+"""
+	price(
+"""
+Currency Code
+"""
+		currency: String
+	): ProductPrice
+"""
+Validate if the discount can be applied to a booking as specified by `booking`. If the booking is eligible the discount and the discounted amount are returned. If the booking is not eligible null is returned
+                    
+"""
+	validate(
+		booking: CreateBookingInput!
+	): BookingDiscount
+"""
+The criteria to validate this discount. May be a list of criteria or a function URN.
+                    
+"""
+	criteria: DiscountCriteria
+}
+
+type ProductTaxonomy {
+	values: [String!]!
+	key: String!
+}
+
+input CreateBookingInput {
+	description: String
+	customerId: ID
+	passengers: [CreatePassengerInput!]
+	productReservations: [CreateProductReservationInput!]
+	currency: String
+	notes: [CreateNoteInput!]
+}
+
+input CreatePassengerInput {
+	customerId: ID
+	givenName: String
+	familyName: String
+	additionalNames: String
+	honorifics: String
+	email: String
+	knownAs: String
+	dateOfBirth: Timestamp
+	passport: PassengerPassportInput
+	sex: Sex
+	telephone: String
+	notes: [CreateNoteInput!]
+}
+
+"""
+`Passport` represents the passport a passenger will use to travel on their booking.
+            A passenger may have one passport per booking.
+            All passport data is securely encrypted at-rest and thus cannot be searched.
+"""
+input PassengerPassportInput {
+"""
+`Passport` represents the passport a passenger will use to travel on their booking.
+            A passenger may have one passport per booking.
+            All passport data is securely encrypted at-rest and thus cannot be searched.
+"""
+	number: String
+"""
+`Passport` represents the passport a passenger will use to travel on their booking.
+            A passenger may have one passport per booking.
+            All passport data is securely encrypted at-rest and thus cannot be searched.
+"""
+	issuedAt: Timestamp
+"""
+`Passport` represents the passport a passenger will use to travel on their booking.
+            A passenger may have one passport per booking.
+            All passport data is securely encrypted at-rest and thus cannot be searched.
+"""
+	expiresAt: Timestamp
+"""
+`Passport` represents the passport a passenger will use to travel on their booking.
+            A passenger may have one passport per booking.
+            All passport data is securely encrypted at-rest and thus cannot be searched.
+"""
+	placeOfIssue: String
+"""
+`Passport` represents the passport a passenger will use to travel on their booking.
+            A passenger may have one passport per booking.
+            All passport data is securely encrypted at-rest and thus cannot be searched.
+"""
+	countryCode: String
+}
+
+input CreateNoteInput {
+	title: String!
+	content: String!
+}
+
+input CreateProductReservationInput {
+	productId: ID
+	providerId: ID
+	externalId: String
+	price: MoneyInput
+	serviceStart: Timestamp
+	serviceEnd: Timestamp
+	autoConfirm: Boolean
+	passengerIndices: [Int!]
+	quantity: Int!
+	description: String
+}
+
+input MoneyInput {
+	currency: String!
+	amount: Int!
+}
+
+union DiscountCriteria =DiscountFunctionCriteria | DiscountCriteriaList
+
+type DiscountFunctionCriteria {
+	functionUrn: String!
+}
+
+type DiscountCriteriaList {
+	criteria: JSON!
+}
+
+enum ProductReservationSort {
+"""
+Sort reservations by product name
+"""
+	PRODUCT_NAME
+"""
+Sort reservations by service start
+"""
+	START_DATE
+"""
+Sort reservations by service end
+"""
+	END_DATE
+"""
+Sort reservations by price amount
+"""
+	PRICE
+}
+
+type BookingDates {
+"""
+The start of the booking, which is the earliest start of any reservation on the booking which matches the given filter criteria.
+"""
+	start: Timestamp
+"""
+The end of the booking, which is the latest end of any reservation on the booking which matches the given filter criteria.
+"""
+	end: Timestamp
+}
+
+type ValidationError {
+"""
+Printable message for the validation error
+"""
+	message: String!
+"""
+System error code for the validation error
+"""
+	code: String!
+"""
+Location of the validation error
+"""
+	path: String!
+"""
+The value causing the validation error
+"""
+	invalidValue: String
+}
+
+type PackageReservation implements Node & ActivityLogged & BookingProductReservation{
+"""
+Check if the reservation is currently capable of being confirmed
+"""
+	confirmable: Boolean!
+"""
+Check if the reservation is currently able to be cancelled
+"""
+	cancellable: Boolean!
+"""
+Get validations for reservation
+"""
+	validations: [ValidationError!]
+	activity(
+		after: String
+		first: Int
+		before: String
+		last: Int
+	): ActivityConnection!
+	organization: Organization!
+"""
+The booking 
+"""
+	booking: Booking!
+	product: Product!
+	reference: String
+	serviceStart: Timestamp
+	serviceEnd: Timestamp
+"""
+Product quantity, available only when occupancy is zero and passengers is empty
+"""
+	quantity: Int!
+"""
+Optional message accompanying the status of a reservation, usually an error
+"""
+	statusMessage: String
+"""
+Optional description of the reservation, up to 200 characters
+"""
+	description: String
+	passengers: [Passenger!]
+	notes: [Note!]
+"""
+Timestamp of when the full balance for the reservation must be paid
+"""
+	balanceDue: Timestamp
+"""
+The status of this product reservation
+"""
+	status: BookingStatus!
+"""
+Unique identifier. Unique between all items including those of different types
+"""
+	id: ID!
+"""
+Timestamp at which this item was initially created
+"""
+	createdAt: Timestamp!
+"""
+Timestamp of the most recent modification to this item
+"""
+	updatedAt: Timestamp!
+	price: Money
+	tags: [String!]
+}
+
+type Transport implements Product & Taggable{
+"""
+A sequence of movements between `TransportStop`s which are contained within this `Transport`
+"""
+	slices: [TransportSlice!]!
+	organization: Organization!
+"""
+The provider from which this product is sourced, empty if the product is internal
+"""
+	provider: ProductProvider
+	name: String!
+"""
+    An optional group-name to associated related or similar products,
+                        when empty the product does not belong to any group
+"""
+	groupName: String
+	element: String
+"""
+An optional long-form product description
+"""
+	description: String
+"""
+    A categorization for the product,
+                        this may be a system-default category or a custom category for the organization
+"""
+	category: String! @deprecated(reason: "Deprecated, use `__typename` instead")
+"""
+    An external identifier which uniquely identifies the product within the context of the provider.
+                        May be an empty string for internal products, but must be set for external products with a value unique
+                        within a single provider.
+"""
+	externalId: String
+	priceDimensions: [ProductPriceDimension!]
+	errata: [ProductErratum!]
+	prices: [ProductPrice!]
+"""
+    A pair of dates which contain the dates during which the product is fulfilled.
+                        
+                        This may be a pair of dates within which a product can be made available, or a fix pair of dates
+                        already existent on the on the product. This value may be empty if there is no date.
+"""
+	dates: DateRange
+	url: String
+	imageUrl: String
+"""
+The constraints for the product
+"""
+	constraints: ProductConstraints
+"""
+Unique identifier. Unique between all items including those of different types
+"""
+	id: ID!
+"""
+Timestamp at which this item was initially created
+"""
+	createdAt: Timestamp!
+"""
+Timestamp of the most recent modification to this item
+"""
+	updatedAt: Timestamp!
+"""
+    The inventory for the product. 
+                        Multiple inventory types exist, see the documentation on `Inventory` for details.
+"""
+	inventory: Inventory!
+"""
+Integer range representing the number of passengers which can be allocated to this product
+"""
+	occupancy: IntRange
+"""
+Reservations made of this product as part of a Booking
+"""
+	reservations: [BookingProductReservation!]
+	taxonomies: [ProductTaxonomy!]
+	cakes: [Cake!]
+"""
+Get the price for a product in a specific currency
+"""
+	price(
+"""
+Currency Code
+"""
+		currency: String
+	): ProductPrice
+	tags: [String!]
+}
+
+interface Taggable {
+	tags: [String!]
+}
+
+type TransportSlice {
+	product: Transport!
+	mode: TransportMode!
+	carrier: TransportCarrier!
+	affiliateCarrier: TransportCarrier
+	intermediateStop: Boolean!
+	name: String
+	passengers: [TransportSlicePassenger!]!
+"""
+Unique identifier. Unique between all items including those of different types
+"""
+	id: ID!
+"""
+Timestamp at which this item was initially created
+"""
+	createdAt: Timestamp!
+"""
+Timestamp of the most recent modification to this item
+"""
+	updatedAt: Timestamp!
+	arrival: TransportSliceTermination!
+	departure: TransportSliceTermination!
+}
+
+enum TransportMode {
+	Air
+	Rail
+	Road
+	Water
+}
+
+type TransportCarrier implements Node{
+	mode: TransportMode!
+	name: String!
+	code: String
+	slices: [TransportSlice!]!
+"""
+Unique identifier. Unique between all items including those of different types
+"""
+	id: ID!
+"""
+Timestamp at which this item was initially created
+"""
+	createdAt: Timestamp!
+"""
+Timestamp of the most recent modification to this item
+"""
+	updatedAt: Timestamp!
+}
+
+type TransportSlicePassenger implements Node{
+	passenger: Passenger!
+	slice: TransportSlice!
+	ticketClass: String
+	ticketNumber: String
+	seatAllocation: String
+"""
+Unique identifier. Unique between all items including those of different types
+"""
+	id: ID!
+"""
+Timestamp at which this item was initially created
+"""
+	createdAt: Timestamp!
+"""
+Timestamp of the most recent modification to this item
+"""
+	updatedAt: Timestamp!
+}
+
+type TransportSliceTermination {
+	stop: TransportStop!
+	timestamp: Timestamp!
+}
+
+type TransportStop implements Node{
+	organization: Organization
+	mode: TransportMode!
+	code: String
+	name: String!
+	timezone: String!
+	country: String
+	city: String
+"""
+Unique identifier. Unique between all items including those of different types
+"""
+	id: ID!
+"""
+Timestamp at which this item was initially created
+"""
+	createdAt: Timestamp!
+"""
+Timestamp of the most recent modification to this item
+"""
+	updatedAt: Timestamp!
+}
+
+type TransportReservation implements BookingProductReservation & Node{
+"""
+Check if the reservation is currently capable of being confirmed
+"""
+	confirmable: Boolean!
+"""
+Check if the reservation is currently able to be cancelled
+"""
+	cancellable: Boolean!
+"""
+Get validations for reservation
+"""
+	validations: [ValidationError!]
+	slices: [TransportSlicePassenger!]!
+"""
+Unique identifier. Unique between all items including those of different types
+"""
+	id: ID!
+"""
+Timestamp at which this item was initially created
+"""
+	createdAt: Timestamp!
+"""
+Timestamp of the most recent modification to this item
+"""
+	updatedAt: Timestamp!
+	organization: Organization!
+"""
+The booking 
+"""
+	booking: Booking!
+	product: Product!
+	reference: String
+	serviceStart: Timestamp
+	serviceEnd: Timestamp
+"""
+Product quantity, available only when occupancy is zero and passengers is empty
+"""
+	quantity: Int!
+"""
+Optional message accompanying the status of a reservation, usually an error
+"""
+	statusMessage: String
+"""
+Optional description of the reservation, up to 200 characters
+"""
+	description: String
+	passengers: [Passenger!]
+	notes: [Note!]
+"""
+Timestamp of when the full balance for the reservation must be paid
+"""
+	balanceDue: Timestamp
+"""
+The status of this product reservation
+"""
+	status: BookingStatus!
+	price: Money
+	tags: [String!]
+}
+
+"""
+A Customer matched by a search query
+"""
+type CustomerSearchHit implements SearchResult{
+"""
+Full name of the customer (computed)
+"""
+	name: String!
+	givenName: String!
+	familyName: String!
+	knownAs: String
+	email: String!
+	telephone: String
+	address: Address
+"""
+Unique identifier of the underlying resource
+"""
+	id: ID!
+"""
+Organization the underlying resource belongs to
+"""
+	organizationId: ID!
+	tags: [String!]!
+	createdAt: Timestamp!
+	updatedAt: Timestamp!
+}
+
+interface SearchResult {
+	id: ID!
+	organizationId: ID!
+	tags: [String!]!
+	createdAt: Timestamp!
+	updatedAt: Timestamp!
+}
+
+"""
+A Product matched by a search query
+"""
+type ProductSearchHit implements SearchResult{
+	name: String!
+	element: String
+"""
+A legacy product categorization used for display decisions
+"""
+	category: String!
+"""
+The concrete product archetype - `Package` or `Transport`
+"""
+	productType: String!
+	description: String
+	imageUrl: String
+	url: String
+	dates: DateRange
+	providerId: ID
+	providerName: String
+	inventoryType: InventoryKind!
+	inventoryCapacity: Int
+	inventoryAvailable: Int
+"""
+Unique identifier of the underlying resource
+"""
+	id: ID!
+"""
+Organization the underlying resource belongs to
+"""
+	organizationId: ID!
+	tags: [String!]!
+	createdAt: Timestamp!
+	updatedAt: Timestamp!
+}
+
+"""
+A Booking matched by a search query
+"""
+type BookingSearchHit implements SearchResult{
+"""
+Human-readable reference for the booking
+"""
+	reference: String!
+	description: String
+	totalPrice: Money!
+	status: BookingStatus!
+	passengerCount: Int!
+"""
+ID of the linked Customer, if any
+"""
+	customerId: ID
+"""
+Name of the linked Customer, if any
+"""
+	customerName: String
+"""
+E-mail address of the linked Customer, if any
+"""
+	customerEmail: String
+"""
+Unique identifier of the underlying resource
+"""
+	id: ID!
+"""
+Organization the underlying resource belongs to
+"""
+	organizationId: ID!
+	tags: [String!]!
+	createdAt: Timestamp!
+	updatedAt: Timestamp!
+}
+
+type Query {
+"""
+Query Customers
+"""
+	customers: CustomerQuery!
+"""
+Query Products and related items such as Providers
+"""
+	products: ProductQuery!
+"""
+Query Bookings and related items such as Passengers and Reservations
+"""
+	bookings: BookingQuery!
+"""
+Query Users (including yourself)
+"""
+	users: UserQuery!
+	oauth: OAuthQuery!
+	webhooks: WebhookQuery!
+	tags: TagsQuery!
+"""
+List accessible Organizations
+"""
+	organizations: [Organization!]
+"""
+Get Organization
+"""
+	organization(
+"""
+Organization ID
+"""
+		id: ID!
+	): Organization!
+	payments: PaymentWidgetQuery!
+"""
+Get all available system roles
+"""
+	availableRoles: [Role!]!
+"""
+Get details of an invite you may have received. No authentication is required to get your invitation, However, only invitations which have not been used, revoked, or expired can be retrieved.
+"""
+	invite(
+		inviteId: String!
+	): Invite
+	activity(
+		organizationId: ID!
+		filters: ActivitiesFilters
+		sortBy: ActivitySortBy
+		direction: SortDirection
+		after: String
+		before: String
+		first: Int
+		last: Int
+	): ActivityConnection!
+	transactions(
+		organizationId: ID!
+		filters: TransactionFilters
+		after: String
+		before: String
+		first: Int
+		last: Int
+	): TransactionConnection!
+	discounts: DiscountsQuery!
+	cakesForBooking(
+"""
+Creation payload of a booking to get speculative CAKES for
+"""
+		booking: CreateBookingInput!
+	): CakesForBookingResponse!
+"""
+Search Customers, Products, and Bookings within an Organization by a single search term
+"""
+	search(
+"""
+Organization to search within
+"""
+		organizationId: ID!
+"""
+Term to search for
+"""
+		searchTerm: String!
+"""
+Maximum number of results to return
+"""
+		limit: Int
+"""
+Number of results to skip, for pagination
+"""
+		offset: Int
+	): SearchResponse!
+}
+
+type CustomerQuery {
+"""
+List customers
+"""
+	customers(
+"""
+Organization ID
+"""
+		organizationId: ID!
+"""
+Filter Customers
+"""
+		filter: CustomerFilters
+		sortBy: CustomerSort
+		direction: SortDirection
+		limit: Int
+		offset: Int
+	): [Customer!]! @deprecated(reason: "deprecated in favour of `list`, which has better pagination support")
+"""
+List customers, using Relay-style cursor pagination
+"""
+	list(
+		organizationId: ID!
+		filters: CustomerFilters
+		after: String
+		before: String
+		first: Int
+		last: Int
+		sortBy: CustomerSort
+		direction: SortDirection
+	): CustomerConnection!
+"""
+Get a customer by ID
+"""
+	customer(
+		id: ID!
+	): Customer
+"""
+Get statistics for customers
+"""
+	stats(
+"""
+Organization ID
+"""
+		organizationId: ID!
+"""
+Filter customers to be included in stats
+"""
+		filters: CustomerFilters!
+	): CustomerStats!
+}
+
+enum CustomerSort {
+"""
+Sort customers lexically by given name
+"""
+	GIVEN_NAME
+"""
+Sort customers lexically by familial name
+"""
+	FAMILY_NAME
+"""
+Sort customers lexically by "known as"
+"""
+	KNOWN_AS
+"""
+Sort customers lexically by e-mail address
+"""
+	EMAIL
+"""
+Sort customers chronologically by creation
+"""
+	CREATED_AT
+"""
+Sort customers chronologically by modification
+"""
+	UPDATED_AT
+"""
+Sort customers lexically by telephone number
+"""
+	TELEPHONE
+	ADDRESS_LINE1
+	ADDRESS_LINE2
+	ADDRESS_LINE3
+	ADDRESS_CITY
+"""
+Sort customers lexically by country code
+"""
+	ADDRESS_COUNTRY
+"""
+Sort customers lexically by first name
+"""
+	FIRST_NAME @deprecated(reason: "Use `GIVEN_NAME` instead.")
+"""
+Sort customers lexically by last name
+"""
+	LAST_NAME @deprecated(reason: "Use `FAMILY_NAME` instead.")
+"""
+Sort customers chronologically by date of birth
+"""
+	DATE_OF_BIRTH
+"""
+Sort customers chronologically by when they were last checked for duplicates
+"""
+	DUPLICATES_CHECKED_AT
+"""
+Sort customers by their unique identifier
+"""
+	ID
+}
+
+type CustomerConnection {
+"""
+Edges of the connection
+"""
+	edges: [CustomerEdge]
+"""
+Page info of the connection
+"""
+	pageInfo: PageInfo
+"""
+Total count of items in the connection.
+"""
+	totalCount: Int
+}
+
+type CustomerEdge {
+"""
+Node of the Edge
+"""
+	node: Customer
+"""
+The edge cursor
+"""
+	cursor: String!
+}
+
+type CustomerStats {
+"""
+Count of customers
+"""
+	count: Int!
+}
+
+type ProductQuery {
+"""
+List and search known products. 
+                    Products listed are those which have been imported from an external provider ahead-of-time, or have been created
+                    as part of a booking, both extent and extinct.
+"""
+	products(
+		organizationId: ID!
+"""
+Filter Products
+"""
+		filters: ProductFilters
+		sortBy: ProductSortBy
+		direction: SortDirection
+		limit: Int
+		offset: Int
+	): [Product!] @deprecated(reason: "deprecated in favour of `list`, which has better pagination support")
+	list(
+		organizationId: ID!
+		filters: ProductFilters
+		after: String
+		before: String
+		first: Int
+		last: Int
+		sortBy: ProductSortBy
+		direction: SortDirection
+	): ProductConnection!
+"""
+Get a single product by ID. Returns the last known data and an error if its provider fails
+"""
+	product(
+"""
+Product ID
+"""
+		id: ID!
+	): Product
+"""
+Get a single product by provider ID and SKU
+"""
+	external(
+"""
+Product Provider ID
+"""
+		providerId: ID!
+"""
+Provider's product SKU
+"""
+		externalId: String!
+	): ProviderProduct!
+"""
+List all packages available from a single provider
+"""
+	packages(
+"""
+Provider ID
+"""
+		providerId: ID!
+	): [ProviderProduct!]
+"""
+List external product providers
+"""
+	providers(
+		organizationId: ID!
+	): [ProductProvider]!
+	search: ProductSearchQuery!
+	transport: TransportQuery!
+"""
+Get products with a relationship to the given product ID
+"""
+	related(
+"""
+Product ID
+"""
+		id: ID!
+	): [ProductRelationGroup!]
+"""
+Get a list of all known taxonomy keys for the given organization
+"""
+	taxonomies(
+		organizationId: ID!
+	): [String!]!
+"""
+Get statistics for products
+"""
+	stats(
+"""
+Organization ID
+"""
+		organizationId: ID!
+"""
+Filter products to be included in stats
+"""
+		filters: ProductFilters!
+	): ProductStats!
+}
+
+"""
+Possible fields on which products can be sorted
+"""
+enum ProductSortBy {
+"""
+Sort by ID
+"""
+	ID
+"""
+Sort by Name
+"""
+	NAME
+"""
+Sort by Group Name
+"""
+	GROUP_NAME
+"""
+Sort chronologically by start date
+"""
+	START_DATE
+"""
+Sort chronologically by end date
+"""
+	END_DATE
+"""
+Sort lexically by product category
+"""
+	CATEGORY
+"""
+Sort products chronologically by creation
+"""
+	CREATED_AT
+"""
+Sort products chronologically by modification
+"""
+	UPDATED_AT
+}
+
+type ProductConnection {
+"""
+Edges of the connection
+"""
+	edges: [ProductEdge]
+"""
+Page info of the connection
+"""
+	pageInfo: PageInfo
+"""
+Total count of items in the connection.
+"""
+	totalCount: Int
+}
+
+type ProductEdge {
+"""
+Node of the Edge
+"""
+	node: Product
+"""
+The edge cursor
+"""
+	cursor: String!
+}
+
+"""
+A product as sourced from an external provider
+"""
+type ProviderProduct {
+"""
+Identity of the product within the provider, must be unique within a provider
+"""
+	id: ID!
+"""
+Product Name
+"""
+	name: String!
+"""
+Product Element
+"""
+	element: String
+"""
+Product Group
+"""
+	groupName: String
+"""
+Optional long-form product description
+"""
+	description: String
+"""
+Pricing for the product
+"""
+	pricing: [ProductPricing!]
+"""
+(Default) Service dates for the product
+"""
+	serviceDates: DateRange
+"""
+Current product Inventory
+"""
+	inventory: Inventory
+"""
+Current product status
+"""
+	status: ProductStatus!
+"""
+Product Occupancy
+"""
+	occupancy: IntRange
+"""
+Related Products
+"""
+	relatedProducts: [RelatedProductGroup!]
+	url: String
+	imageUrl: String
+	tags: [String!]
+	errata: [ProductErratum!]
+	priceDimensions: [ProductPriceDimension!]
+	extended: [Extended!]
+	constraints: ProductConstraints
+}
+
+type ProductPricing {
+"""
+Full price for the product, due on or before `balance_due`
+"""
+	price: Money!
+"""
+A deposit price for the product, due on booking
+"""
+	deposit: Money
+"""
+Balance due for the full `price`, if in the past then full price is always due
+"""
+	balanceDue: Timestamp
+}
+
+"""
+Product Status
+"""
+enum ProductStatus {
+"""
+Product is on sale and may be sold
+"""
+	ON_SALE
+"""
+Product cannot be sold, current sales are not impacted
+"""
+	STOP_SELL
+"""
+Product is cancelled, new sales cannot be made and excisting sales are void
+"""
+	CANCELLED
+}
+
+type RelatedProductGroup {
+	title: String!
+	minItems: Int
+	maxItems: Int
+	products: [String!]
+}
+
+union Extended =ExtendedStringData | ExtendedIntData | ExtendedFloatData | ExtendedBoolData | ExtendedStringArrayData | ExtendedIntArrayData | ExtendedEmptyArrayData
+
+type ExtendedStringData {
+	name: String!
+	value: String
+}
+
+type ExtendedIntData {
+	name: String!
+	value: Int
+}
+
+type ExtendedFloatData {
+	name: String!
+	value: Int
+}
+
+type ExtendedBoolData {
+	name: String!
+	value: Boolean
+}
+
+type ExtendedStringArrayData {
+	name: String!
+	value: [String]
+}
+
+type ExtendedIntArrayData {
+	name: String!
+	value: [Int]
+}
+
+type ExtendedEmptyArrayData {
+	name: String!
+	value: [String]
+}
+
+type ProductSearchQuery {
+"""
+Search one or more providers for packages
+"""
+	packages(
+"""
+Organization ID
+"""
+		organizationId: ID!
+"""
+Filters
+"""
+		filters: PackageSearchInput!
+	): [ProductSearchResult!]
+}
+
+input PackageSearchInput {
+	providerIds: [ID!]
+	sku: String
+	dates: DateFilterInput
+	prices: PriceFilterInput
+	sort: PackageSearchSort
+	limit: Int
+	offset: Int
+}
+
+input DateFilterInput {
+	start: Timestamp
+	end: Timestamp
+}
+
+enum PackageSearchSort {
+"""
+Sort by price value
+"""
+	PRICE
+"""
+Sort by start date
+"""
+	START_DATE
+"""
+Sort by end date
+"""
+	END_DATE
+"""
+sort by id
+"""
+	ID
+"""
+Product Name
+"""
+	NAME
+}
+
+type ProductSearchResult {
+	provider: ProductProvider!
+	product: ProviderProduct!
+}
+
+type TransportQuery {
+	stop(
+		id: ID!
+	): TransportStop
+	stops(
+		organizationId: ID!
+		filters: TransportStopFilter
+		sort: TransportStopSortBy
+		after: String
+		before: String
+		first: Int
+		last: Int
+	): TransportStopConnection!
+	carriers(
+		organizationId: ID!
+		filters: TransportCarrierFilter
+		after: String
+		before: String
+		first: Int
+		last: Int
+	): TransportCarrierConnection!
+	carrier(
+		id: ID!
+	): TransportCarrier
+	slices(
+		organizationId: ID!
+		filters: TransportSliceFilter
+		after: String
+		before: String
+		first: Int
+		last: Int
+	): TransportSliceConnection!
+	search(
+		organizationId: ID!
+		filters: TransportFilters
+		after: String
+		before: String
+		first: Int
+		last: Int
+	): TransportConnection!
+}
+
+input TransportStopFilter {
+	search: TransportStopSearchFilter
+	name: StringFilter
+	code: StringFilter
+	mode: TransportModeFilterInput
+	country: StringChoiceFilter
+	city: StringFilter
+	timezone: StringFilter
+}
+
+"""
+Search a transport stop by name or code.
+            All filter operations are case-insensitive.
+"""
+input TransportStopSearchFilter {
+"""
+Search a transport stop by name or code.
+            All filter operations are case-insensitive.
+"""
+	operation: StringFilterOperation
+"""
+Search a transport stop by name or code.
+            All filter operations are case-insensitive.
+"""
+	value: String
+}
+
+input TransportModeFilterInput {
+	include: [TransportMode!]!
+	exclude: [TransportMode!]!
+}
+
+enum TransportStopSortBy {
+	NAME
+	CODE
+	COUNTRY
+	CITY
+	MODE
+	TIMEZONE
+}
+
+type TransportStopConnection {
+"""
+Edges of the connection
+"""
+	edges: [TransportStopEdge]
+"""
+Page info of the connection
+"""
+	pageInfo: PageInfo
+"""
+Total count of items in the connection.
+"""
+	totalCount: Int
+}
+
+type TransportStopEdge {
+"""
+Node of the Edge
+"""
+	node: TransportStop
+"""
+The edge cursor
+"""
+	cursor: String!
+}
+
+input TransportCarrierFilter {
+	id: IDsFilter
+	name: StringFilter
+	code: StringFilter
+	mode: TransportModeFilterInput
+}
+
+type TransportCarrierConnection {
+"""
+Edges of the connection
+"""
+	edges: [TransportCarrierEdge]
+"""
+Page info of the connection
+"""
+	pageInfo: PageInfo
+"""
+Total count of items in the connection.
+"""
+	totalCount: Int
+}
+
+type TransportCarrierEdge {
+"""
+Node of the Edge
+"""
+	node: TransportCarrier
+"""
+The edge cursor
+"""
+	cursor: String!
+}
+
+input TransportSliceFilter {
+	arrivalStop: TransportStopFilter
+	departureStop: TransportStopFilter
+	departureTimestamp: TimestampFilter
+	arrivalTimestamp: TimestampFilter
+	carrier: TransportCarrierFilter
+	mode: TransportModeFilterInput
+	name: StringFilter
+}
+
+type TransportSliceConnection {
+"""
+Edges of the connection
+"""
+	edges: [TransportSliceEdge]
+"""
+Page info of the connection
+"""
+	pageInfo: PageInfo
+"""
+Total count of items in the connection.
+"""
+	totalCount: Int
+}
+
+type TransportSliceEdge {
+"""
+Node of the Edge
+"""
+	node: TransportSlice
+"""
+The edge cursor
+"""
+	cursor: String!
+}
+
+input TransportFilters {
+	slices: [TransportSliceFilter!]
+	tags: TagsFilter
+	provider: ProviderFilters
+	name: StringFilter
+	groupName: StringFilter
+	category: StringChoiceFilter
+	description: StringFilter
+	dates: DateRangeFilter
+	prices: PriceFilterInput
+	taxonomies: [TaxonomyFilter!]
+	element: StringFilter
+	id: IDsFilter
+	createdAt: TimestampFilter
+	updatedAt: TimestampFilter
+}
+
+type TransportConnection {
+"""
+Edges of the connection
+"""
+	edges: [TransportEdge]
+"""
+Page info of the connection
+"""
+	pageInfo: PageInfo
+"""
+Total count of items in the connection.
+"""
+	totalCount: Int
+}
+
+type TransportEdge {
+"""
+Node of the Edge
+"""
+	node: Transport
+"""
+The edge cursor
+"""
+	cursor: String!
+}
+
+type ProductRelationGroup {
+	title: String!
+	minItems: Int!
+	maxItems: Int
+	products: [ProviderProduct!]
+}
+
+type ProductStats {
+"""
+Count of products
+"""
+	count: Int!
+}
+
+type BookingQuery {
+"""
+Get a single booking by ID
+"""
+	booking(
+		id: ID!
+	): Booking
+"""
+Get a single booking by Organization ID and booking reference
+"""
+	byReference(
+		organizationId: ID!
+		reference: String!
+	): Booking
+"""
+Search bookings
+"""
+	bookings(
+		organizationId: ID!
+		filters: BookingFilters
+		sortBy: BookingSort
+		direction: SortDirection
+		limit: Int
+		offset: Int
+	): [Booking!] @deprecated(reason: "deprecated in favour of `list`, which has better pagination support")
+"""
+List bookings, using Relay-style cursor pagination
+"""
+	list(
+		organizationId: ID!
+		filters: BookingFilters
+		after: String
+		before: String
+		first: Int
+		last: Int
+		sortBy: BookingListSort
+		direction: SortDirection
+	): BookingConnection!
+"""
+Get a single passenger by ID
+"""
+	passenger(
+"""
+Passenger ID
+"""
+		id: ID!
+	): Passenger
+	passengers(
+"""
+Organization ID
+"""
+		organizationId: ID!
+"""
+Filter passengers
+"""
+		filters: PassengerFilters
+		sortBy: PassengerSortBy
+		direction: SortDirection
+		limit: Int
+		offset: Int
+	): [Passenger!]
+"""
+Search product reservations
+"""
+	reservations(
+		organizationId: ID!
+		filters: ProductReservationFilters
+		sortBy: ProductReservationSortBy
+		direction: SortDirection
+		limit: Int
+		offset: Int
+	): [BookingProductReservation!]
+"""
+Get a single product reservation by ID
+"""
+	reservation(
+		id: ID!
+	): BookingProductReservation!
+	transactions(
+"""
+Organization ID
+"""
+		organizationId: ID!
+"""
+Filter Transactions
+"""
+		filters: TransactionFilters
+		sortBy: TransactionSortBy
+		direction: SortDirection
+		limit: Int
+		offset: Int
+	): [Transaction!]
+	transaction(
+"""
+Transaction ID
+"""
+		transactionId: ID!
+	): Transaction!
+"""
+Get statistics for bookings
+"""
+	stats(
+"""
+Organization ID
+"""
+		organizationId: ID!
+"""
+Filter bookings to be included in stats
+"""
+		filters: BookingFilters!
+	): BookingStats!
+}
+
+enum BookingSort {
+"""
+Sort bookings by reference
+"""
+	REFERENCE
+"""
+Sort bookings by description
+"""
+	DESCRIPTION
+"""
+Sort by total price
+"""
+	TOTAL_PRICE
+"""
+Sort by outstanding Balance
+"""
+	OUTSTANDING_BALANCE
+"""
+Sort bookings chronologically by creation
+"""
+	CREATED_AT
+"""
+Sort bookings chronologically by latest modification
+"""
+	UPDATED_AT
+}
+
+"""
+Sort keys supported by `list`'s cursor pagination. Excludes `BookingSort`'s computed (`TOTAL_PRICE`/`OUTSTANDING_BALANCE`) keys -- those need a currency-aware total, which sorting across a mixed-currency dataset does not have, and are only supported by the deprecated `bookings` query.
+"""
+enum BookingListSort {
+"""
+Sort bookings by reference
+"""
+	REFERENCE
+"""
+Sort bookings by description
+"""
+	DESCRIPTION
+"""
+Sort bookings chronologically by creation
+"""
+	CREATED_AT
+"""
+Sort bookings chronologically by latest modification
+"""
+	UPDATED_AT
+"""
+Sort bookings by their unique identifier
+"""
+	ID
+}
+
+type BookingConnection {
+"""
+Edges of the connection
+"""
+	edges: [BookingEdge]
+"""
+Page info of the connection
+"""
+	pageInfo: PageInfo
+"""
+Total count of items in the connection.
+"""
+	totalCount: Int
+}
+
+type BookingEdge {
+"""
+Node of the Edge
+"""
+	node: Booking
+"""
+The edge cursor
+"""
+	cursor: String!
+}
+
+enum ProductReservationSortBy {
+"""
+Sort by ID
+"""
+	ID
+"""
+Sort reservations chronologically by service start
+"""
+	START_DATE
+"""
+Sort reservations chronologically by service end
+"""
+	END_DATE
+"""
+Sort by reservation reference
+"""
+	REFERENCE
+"""
+Sort reservations chronologically by creation
+"""
+	CREATED_AT
+"""
+Sort reservations chronologically by modification
+"""
+	UPDATED_AT
+"""
+Sort reservations chronologically by balance due date
+"""
+	BALANCE_DUE
+}
+
+input TransactionFilters {
+	reference: StringFilter
+	amountCurrency: StringChoiceFilter
+	amountValue: NumericFilter
+	booking: BookingFilters
+	id: IDsFilter
+	createdAt: TimestampFilter
+	updatedAt: TimestampFilter
+}
+
+type BookingStats {
+"""
+Count of bookings
+"""
+	count: Int!
+"""
+Count of passengers
+"""
+	passengers: Int!
+"""
+Total Value
+"""
+	totalValue: Float!
+}
+
+type UserQuery {
+	user(
+"""
+User ID
+"""
+		id: ID
+"""
+User Email
+"""
+		email: String
+	): User
+"""
+Gets the identity of the user making the API call
+"""
+	me: User!
+}
+
+type OAuthQuery {
+"""
+Look up an OAuth client, or `null` if there is no such client
+"""
+	client(
+"""
+Public ID of the client
+"""
+		clientId: String!
+	): OAuthClient
+}
+
+type WebhookQuery {
+"""
+Get a single webhook subscription by ID
+"""
+	subscription(
+"""
+Subscription ID
+"""
+		id: ID!
+	): WebhookSubscription
+"""
+List an organization's webhook subscriptions, using Relay-style cursor pagination
+"""
+	subscriptions(
+		organizationId: ID!
+		filters: WebhookSubscriptionFilters
+		after: String
+		before: String
+		first: Int
+		last: Int
+		sortBy: WebhookSubscriptionSort
+		direction: SortDirection
+	): WebhookSubscriptionConnection!
+	calls(
+"""
+Item ID
+"""
+		id: ID!
+	): [WebhookCall!]
+}
+
+type WebhookSubscription {
+	organization: _Internal_Organization!
+	events: [WebhookEvent!]!
+	url: String!
+"""
+An optional short name or description to identify the subscription
+"""
+	description: String
+"""
+Whether events are delivered to this subscription. Disabled subscriptions receive nothing
+"""
+	enabled: Boolean!
+	calls: [WebhookCall!] @deprecated(reason: "Loads every call at once, use `callHistory` which is paginated")
+"""
+The calls made to this subscription, newest first, using Relay-style cursor pagination
+"""
+	callHistory(
+"""
+Cursor to paginate forwards from
+"""
+		after: String
+"""
+Cursor to paginate backwards from
+"""
+		before: String
+"""
+Number of calls to return, paginating forwards (default 25)
+"""
+		first: Int
+"""
+Number of calls to return, paginating backwards
+"""
+		last: Int
+	): WebhookCallConnection!
+"""
+Unique identifier. Unique between all items including those of different types
+"""
+	id: ID!
+"""
+Timestamp at which this item was initially created
+"""
+	createdAt: Timestamp!
+"""
+Timestamp of the most recent modification to this item
+"""
+	updatedAt: Timestamp!
+}
+
+"""
+`Organization` represents a top-level business-unit.
+            All resources are owned by an organization.
+            While a `User` may have access to more than one `Organization`, all queries and mutations
+            must be scoped to a single `Organization`.
+"""
+type _Internal_Organization {
+"""
+Organization Name
+"""
+	name: String!
+	settings: OrganizationSettings!
+	logtoId: ID!
+	environment: Environment!
+"""
+Unique identifier. Unique between all items including those of different types
+"""
+	id: ID!
+"""
+Timestamp at which this item was initially created
+"""
+	createdAt: Timestamp!
+"""
+Timestamp of the most recent modification to this item
+"""
+	updatedAt: Timestamp!
+}
+
+"""
+A list of events which webhooks can subscribe to, including pseudo-events which match multiple event types,
+            plus the `ANY` event which matches all events.
+            
+"""
+enum WebhookEvent {
+"""
+**Trigger**: *all* events, including new event types added after subscription creation
+                    **Code**: _variable_
+                    **Payload**: _variable_
+                    
+"""
+	ANY
+"""
+**Trigger**: when a new booking is created.
+                    **Code**: booking.created
+                    **Payload**: `Booking`
+                    
+"""
+	BOOKING_CREATED
+"""
+**Trigger**: when a booking is updated
+                    **Code**: booking.updated
+                    **Payload**: `Booking`
+                    
+"""
+	BOOKING_UPDATED
+"""
+**Trigger**: all booking events
+                    **Code**: _variable_
+                    **Payload**: `Booking`
+"""
+	BOOKING_ANY
+"""
+**Trigger**: when a new reservation is created.
+                    **Code**: booking.reservation.created
+                    **Payload**: `ProductReservation`
+                    
+"""
+	RESERVATION_CREATED
+"""
+**Trigger**: when an existing reservation is updated.
+                    **Code**: booking.reservation.updated
+                    **Payload**: `ProductReservation`
+                    
+"""
+	RESERVATION_UPDATED
+"""
+**Trigger**: when a reservation has been confirmed.
+                    **Code**: booking.reservation.confirmed
+                    **Payload**: `ProductReservation`
+                    
+"""
+	RESERVATION_CONFIRMED
+"""
+**Trigger**: when a reservation has been cancelled
+                    **Code**: booking.reservation.cancelled
+                    **Payload**: `ProductReservation`
+                    
+"""
+	RESERVATION_CANCELLED
+"""
+**Trigger**: when a reservation can't be moved from one status to another
+                    **Code**: booking.reservation.errored
+                    **Payload**: `ProductReservation`
+                    
+"""
+	RESERVATION_ERRORED
+"""
+**Trigger**: when a cancelled reservation is moved to the archive
+                    **Code**: booking.reservation.archived
+                    **Payload**: `ProductReservation`
+                    
+"""
+	RESERVATION_ARCHIVED
+"""
+**Trigger**: on any reservation event
+                    **Code**: _variable_
+                    **Payload**: `ProductReservation`
+                    
+"""
+	RESERVATION_ANY
+"""
+**Trigger**: on passenger creation
+                    **Code**: booking.passenger.created
+                    **Payload**: `Passenger`
+                    
+"""
+	PASSENGER_CREATED
+"""
+**Trigger**: on passenger update
+                    **Code**: booking.passenger.updated
+                    **Payload**: `Passenger`
+                    
+"""
+	PASSENGER_UPDATED
+"""
+**Trigger**: on any transaction event
+                    **Code**: _variable_
+                    **Payload**: `Transaction`
+                    
+"""
+	TRANSACTION_ANY
+"""
+**Trigger**: when a new transaction is created
+                    **Code**: booking.transaction.created
+                    **Payload**: `Transaction`
+                    
+"""
+	TRANSACTION_CREATED
+"""
+**Trigger**: when an existing transaction is updated, including status changes
+                    **Code**: booking.transaction.updated
+                    **Payload**: `Transaction`
+                    
+"""
+	TRANSACTION_UPDATED
+"""
+**Trigger**: on note creation
+                    **Code**: note.created
+                    **Payload**: `Note` + Attached Object
+                    
+"""
+	NOTE_CREATED
+	CUSTOMER_ANY
+	CUSTOMER_CREATED
+	CUSTOMER_UPDATED
+	CUSTOMER_DELETED
+"""
+**Trigger**: Any contract event
+                    **Code**: _variable_
+                    **Payload**: `{ booking => Booking, contract => Contract }`
+                    
+"""
+	CONTRACT_ANY
+"""
+**Trigger**: Contract Commencement (first payment)
+                    **Code**: booking.contract.start
+                    **Payload**: `{ booking => Booking, contract => Contract }`
+                    
+"""
+	CONTRACT_STARTED
+"""
+**Trigger**: Contract Update -- Including Payment against a contract
+                    **Code**: booking.contract.update
+                    **Payload**: `{ booking => Booking, contract => Contract }`
+                    
+"""
+	CONTRACT_UPDATED
+"""
+**Trigger**: Contract Finish -- Either all payments taken or terminated early.
+                    **Code**: booking.contract.finished
+                    **Payload**: `{ booking => Booking, contract => Contract }`
+                    
+"""
+	CONTRACT_FINISHED
+}
+
+"""
+Contains details of an individual webhook call
+"""
+type WebhookCall {
+"""
+The event which was triggerred
+"""
+	event: WebhookEvent!
+"""
+The subscription which the call was made to
+"""
+	subscription: WebhookSubscription!
+"""
+The timestamp of the HTTP request
+"""
+	timestamp: Timestamp!
+"""
+The HTTP Response Code returned by the Webhook call
+"""
+	responseCode: Int!
+"""
+Time taken to complete the Webook call, in milliseconds
+"""
+	millis: Float!
+"""
+Description of the HTTP request which was made
+"""
+	request: HttpMessage!
+"""
+Description of the HTTP response which was received
+"""
+	response: HttpMessage
+"""
+Unique identifier. Unique between all items including those of different types
+"""
+	id: ID!
+"""
+Timestamp at which this item was initially created
+"""
+	createdAt: Timestamp!
+"""
+Timestamp of the most recent modification to this item
+"""
+	updatedAt: Timestamp!
+}
+
+type HttpMessage {
+"""
+HTTP Body, truncated to 1024 bytes
+"""
+	body: String!
+"""
+List of HTTP Headers
+"""
+	headers: [HttpHeader!]
+}
+
+type HttpHeader {
+	name: String!
+	value: String!
+}
+
+type WebhookCallConnection {
+"""
+Edges of the connection
+"""
+	edges: [WebhookCallEdge]
+"""
+Page info of the connection
+"""
+	pageInfo: PageInfo
+"""
+Total count of items in the connection.
+"""
+	totalCount: Int
+}
+
+type WebhookCallEdge {
+"""
+Node of the Edge
+"""
+	node: WebhookCall
+"""
+The edge cursor
+"""
+	cursor: String!
+}
+
+input WebhookSubscriptionFilters {
+	description: StringFilter
+	url: StringFilter
+	events: WebhookEventsFilter
+	enabled: Boolean
+	id: IDsFilter
+	createdAt: TimestampFilter
+	updatedAt: TimestampFilter
+}
+
+"""
+Filter webhook subscriptions to those which would be notified of any of the given events.
+            This includes subscriptions to wildcard events covering them, e.g. `booking.*` or `ANY`.
+"""
+input WebhookEventsFilter {
+"""
+Filter webhook subscriptions to those which would be notified of any of the given events.
+            This includes subscriptions to wildcard events covering them, e.g. `booking.*` or `ANY`.
+"""
+	values: [WebhookEvent!]!
+}
+
+"""
+Sort keys supported when listing webhook subscriptions
+"""
+enum WebhookSubscriptionSort {
+"""
+Sort subscriptions by their unique identifier
+"""
+	ID
+"""
+Sort subscriptions by description
+"""
+	DESCRIPTION
+"""
+Sort subscriptions by URL
+"""
+	URL
+"""
+Sort subscriptions chronologically by creation
+"""
+	CREATED_AT
+"""
+Sort subscriptions chronologically by latest modification
+"""
+	UPDATED_AT
+}
+
+type WebhookSubscriptionConnection {
+"""
+Edges of the connection
+"""
+	edges: [WebhookSubscriptionEdge]
+"""
+Page info of the connection
+"""
+	pageInfo: PageInfo
+"""
+Total count of items in the connection.
+"""
+	totalCount: Int
+}
+
+type WebhookSubscriptionEdge {
+"""
+Node of the Edge
+"""
+	node: WebhookSubscription
+"""
+The edge cursor
+"""
+	cursor: String!
+}
+
+type TagsQuery {
+	suggest(
+		organizationId: ID!
+		scope: TagScope!
+		prefix: String!
+	): [String!]
+	list(
+		organizationId: ID!
+		scope: TagScope
+		prefix: String
+		after: String
+		before: String
+		first: Int
+		last: Int
+	): TagsConnection!
+	find(
+		organizationId: ID!
+		scope: TagScope!
+		tags: [String!]!
+	): [Tag!]
+}
+
+enum TagScope {
+	BOOKINGS
+	CUSTOMERS
+	PASSENGERS
+	PRODUCTS
+	PRODUCT_RESERVATIONS
+}
+
+type TagsConnection {
+"""
+Edges of the connection
+"""
+	edges: [TagsConnectionEdge]
+"""
+Page info of the connection
+"""
+	pageInfo: PageInfo
+"""
+Total count of items in the connection.
+"""
+	totalCount: Int
+}
+
+type TagsConnectionEdge {
+"""
+Node of the Edge
+"""
+	node: Tag
+"""
+The edge cursor
+"""
+	cursor: String!
+}
+
+type Tag {
+	tag: String!
+	scope: TagScope!
+	organization: Organization!
+	createdAt: Timestamp!
+	updatedAt: Timestamp!
+	color: String
+	description: String
+	id: ID!
+}
+
+type PaymentWidgetQuery {
+	widget(
+		organizationId: ID!
+		widget: String!
+	): String!
+}
+
+"""
+A role defines a set of _scopes_ which can be applied to control access to various facilities within RezKit applications.
+            
+"""
+type Role {
+	id: ID!
+	name: String!
+	description: String!
+	type: String!
+	scopes: [IDNamePair!]
+	resourceScopes: [ResourceScope!]
+}
+
+"""
+An item which contains an ID and a Name which labels it.
+"""
+type ResourceScope {
+	id: ID!
+	name: String!
+	resource: IDNamePair!
+}
+
+input ActivitiesFilters {
+	id: IDsFilter
+	targetId: ID
+	rootId: ID
+	rootClass: StringFilter
+	event: ActivityEventFilter
+	createdAt: TimestampFilter
+	updatedAt: TimestampFilter
+}
+
+input ActivityEventFilter {
+	value: String
+}
+
+enum ActivitySortBy {
+	ID
+	CREATED_AT
+	UPDATED_AT
+}
+
+type TransactionConnection {
+"""
+Edges of the connection
+"""
+	edges: [TransactionConnectionEdge]
+"""
+Page info of the connection
+"""
+	pageInfo: PageInfo
+"""
+Total count of items in the connection.
+"""
+	totalCount: Int
+}
+
+type TransactionConnectionEdge {
+"""
+Node of the Edge
+"""
+	node: Transaction
+"""
+The edge cursor
+"""
+	cursor: String!
+}
+
+type DiscountsQuery {
+	discounts(
+		organizationId: ID!
+"""
+Filter Discounts
+"""
+		filter: DiscountFilters
+		sortBy: DiscountSort
+		direction: SortDirection
+		limit: Int
+		offset: Int
+	): [Discount!]
+"""
+Get a discount by ID
+"""
+	discount(
+"""
+Discount ID, the ID of the discount's product
+"""
+		id: ID!
+	): Discount
+"""
+Get a discount by organization and discount code
+"""
+	discountCode(
+		organizationId: ID!
+		code: String!
+	): Discount
+"""
+Get statistics for discounts
+"""
+	stats(
+"""
+Organization ID
+"""
+		organizationId: ID!
+"""
+Filter discounts to be included in stats
+"""
+		filters: DiscountFilters!
+	): DiscountStats!
+}
+
+input DiscountFilters {
+	name: StringFilter
+	code: StringFilter
+	id: IDsFilter
+	createdAt: TimestampFilter
+	updatedAt: TimestampFilter
+}
+
+enum DiscountSort {
+"""
+Sort discounts by product id
+"""
+	PRODUCT_ID
+"""
+Sort discounts by code
+"""
+	DISCOUNT_CODE
+"""
+Sort discounts by value
+"""
+	VALUE
+"""
+Sort by name
+"""
+	NAME
+"""
+Sort by when it is valid from
+"""
+	VALID_FROM
+"""
+Sort discounts chronologically by creation
+"""
+	CREATED_AT
+"""
+Sort discounts chronologically by latest modification
+"""
+	UPDATED_AT
+}
+
+type DiscountStats {
+"""
+Count of discounts
+"""
+	count: Int!
+}
+
+type CakesForBookingResponse {
+	passengers: [CakesForPassengerResponse!]!
+}
+
+type CakesForPassengerResponse {
+	index: Int!
+	products: [Product!]
+	cakes: [CakeDescription!]!
+}
+
+type CakeDescription {
+	name: String!
+	path: String!
+	validation: CakeValidation
+	type: CakeType!
+	presentation: JSON!
+	requiredBy: Timestamp
+	requiredToConfirm: Boolean!
+	isDeadlineEnforced: Boolean!
+}
+
+type SearchResponse {
+	results: [SearchResult!]!
+"""
+Approximate total number of matches across all searched resource types
+"""
+	estimatedTotalHits: Int!
+}
+
+type Mutation {
+	webhooks: WebhooksMutation!
+	createOrganization(
+"""
+Org name
+"""
+		name: String!
+"""
+Org environment
+"""
+		environment: Environment
+	): Organization
+	invite(
+"""
+Organization ID
+"""
+		id: ID!
+"""
+User e-mail address
+"""
+		email: String!
+"""
+Roles to assign to the user
+"""
+		roles: [String!]!
+"""
+Optional URL to send the user to accept their invite
+"""
+		link: String
+	): Invite
+"""
+Resend an existing user invite to their e-mail address
+"""
+	resendInvite(
+"""
+Invite ID
+"""
+		inviteId: String!
+"""
+URL to send the user to accept their invite
+"""
+		link: String
+	): Boolean
+"""
+Cancel an existing user invite
+"""
+	cancelInvite(
+"""
+Invite ID
+"""
+		id: String!
+	): Invite
+"""
+Accept an existing user invite
+"""
+	acceptInvite(
+"""
+Invite ID
+"""
+		id: String!
+	): Boolean!
+"""
+Update an organization's settings
+"""
+	updateOrganizationSettings(
+"""
+Organization ID
+"""
+		organizationId: ID!
+"""
+Settings to update
+"""
+		settings: UpdateOrganizationSettingsInput!
+	): OrganizationSettings!
+"""
+Register for RezKit using an Invite. This mutation does not require authentication.
+"""
+	register(
+"""
+E-mail address. Must match the e-mail address on the invite.
+"""
+		email: String!
+"""
+Display Name
+"""
+		name: String!
+"""
+Invite Code
+"""
+		inviteId: String!
+"""
+Optionally set a password. \nA password is *not* required, and if omitted login can be performed viasingle-use codes or social sign-in.
+"""
+		password: String
+	): User
+	bookings: BookingMutation!
+	booking(
+"""
+Booking ID
+"""
+		id: ID!
+	): SingleBookingMutation!
+	reservation(
+"""
+Reservation ID
+"""
+		id: ID!
+	): ReservationMutation!
+	passenger(
+"""
+Passenger ID
+"""
+		id: ID!
+	): SinglePassengerMutation!
+	discounts: DiscountsMutation!
+	createStop(
+		organizationId: ID!
+		stop: CreateTransportStopInput!
+	): TransportStop
+	updateStop(
+		id: ID!
+		values: UpdateTransportStopInput!
+	): TransportStop
+	createTransportCarrier(
+		organizationId: ID!
+		carrier: CreateTransportCarrierInput!
+	): TransportCarrier
+	updateTransportCarrier(
+		id: ID!
+		values: UpdateTransportCarrierInput!
+	): TransportCarrier
+	deleteTransportCarrier(
+		id: ID!
+	): Boolean!
+	createSlice(
+"""
+The ID of the transport package to add the slice to
+"""
+		transportId: ID!
+		slice: CreateTransportSliceInput!
+	): TransportSlice
+	updateSlice(
+"""
+ID of the `TransportSlice` to update.
+"""
+		id: ID!
+		slice: UpdateTransportSliceInput!
+	): TransportSlice
+	removeSlice(
+"""
+ID of the `TransportSlice` to remove.
+"""
+		id: ID!
+	): TransportSlice
+	createTransport(
+		organizationId: ID!
+		transport: CreateTransportInput!
+	): Transport
+	products: ProductMutation!
+	product(
+		id: String!
+	): SingleProductMutation!
+"""
+Customer Mutation Operations
+"""
+	customers: CustomerMutation!
+"""
+Modify a specific customer
+"""
+	customer(
+		id: String!
+	): SingleCustomerMutation!
+	tags: TagsMutation!
+"""
+Update the currently authenticated user's settings
+"""
+	updateUserSettings(
+"""
+Settings to update
+"""
+		settings: UpdateUserSettingsInput!
+	): UserSettings!
+	oauth: OAuthMutation!
+}
+
+type WebhooksMutation {
+	createSubscription(
+		organizationId: ID!
+		url: String!
+		events: [WebhookEvent!]!
+"""
+Optional short name or description
+"""
+		description: String
+"""
+Whether the subscription is enabled
+"""
+		enabled: Boolean
+	): WebhookSubscription!
+	updateSubscription(
+"""
+Subscription ID
+"""
+		id: ID!
+		updates: UpdateSubscriptionInput!
+	): WebhookSubscription!
+	deleteSubscription(
+"""
+Subscription ID
+"""
+		id: ID!
+	): Boolean!
+}
+
+input UpdateSubscriptionInput {
+	events: [WebhookEvent!]
+	description: String
+	clearDescription: Boolean
+	enabled: Boolean
+}
+
+input UpdateOrganizationSettingsInput {
+	honorifics: [String!]
+	currencies: CurrencySettingsInput
+}
+
+input CurrencySettingsInput {
+	enabled: [String!]!
+	default: String!
+}
+
+type BookingMutation {
+"""
+## Create a New Booking
+                    
+                    Create a new booking, the booking can be either a blank shell with no contents,
+                    or can include some or all of the following:
+                    
+                    * Passenger Information
+                    * Booked Products
+                    * Transactions
+"""
+	create(
+"""
+Organization ID
+"""
+		organizationId: ID!
+		booking: CreateBookingInput!
+	): Booking
+"""
+Update top-level booking information
+"""
+	update(
+		bookingId: ID!
+		updates: UpdateBookingInput
+	): Booking
+	passengers: PassengerMutation!
+	reservations: ProductReservationMutation!
+	transactions: TransactionMutation!
+"""
+Remove the linked customer from a booking
+"""
+	removeCustomer(
+		id: ID!
+	): Booking
+"""
+Set up a payment account receivable for a booking
+"""
+	createPaymentAccount(
+"""
+Booking ID
+"""
+		id: ID!
+	): PaymentAccount
+	updateTransportSlicePassenger(
+"""
+Transport Passenger Slice ID
+"""
+		id: ID!
+		values: UpdateTransportSlicePassengerInput!
+	): TransportSlicePassenger!
+"""
+Add a note
+"""
+	addNote(
+"""
+Item ID
+"""
+		id: ID!
+"""
+Note title
+"""
+		title: String!
+"""
+Note content
+"""
+		content: String!
+	): Note!
+"""
+Delete a note
+"""
+	removeNote(
+"""
+Note ID
+"""
+		id: ID!
+	): Boolean!
+"""
+Update a note
+"""
+	updateNote(
+"""
+Note ID
+"""
+		id: ID!
+"""
+New note title
+"""
+		title: String
+"""
+New note content
+"""
+		content: String
+	): Note!
+"""
+Upload a file
+"""
+	uploadFile(
+"""
+Item to attach file   to
+"""
+		id: ID!
+"""
+File title
+"""
+		title: String!
+"""
+File upload
+"""
+		file: FileUpload!
+	): File
+"""
+Delete a file
+"""
+	deleteFile(
+"""
+File ID
+"""
+		fileId: ID!
+	): Boolean!
+}
+
+input UpdateBookingInput {
+	description: String
+	status: BookingStatus
+	customerId: ID
+	contractId: String
+}
+
+type PassengerMutation {
+	create(
+"""
+Booking ID
+"""
+		bookingId: ID!
+"""
+Passenger to be created
+"""
+		passenger: CreatePassengerInput!
+	): Passenger!
+	update(
+		passengerId: ID!
+		updates: UpdatePassengerInput!
+	): Passenger!
+"""
+Cancel a passenger from their booking.
+                    Passengers cannot be cancelled if they have active reservations
+"""
+	cancel(
+		id: ID!
+	): Passenger!
+"""
+Restore the passenger, clearing their cancellation status.
+                    _Calling this mutation isn't usually needed as passengers are automatically restored when added to a reservation_.
+                    If the passenger not cancelled this mutation has no effect. 
+"""
+	uncancel(
+		id: ID!
+	): Passenger!
+"""
+Add a note
+"""
+	addNote(
+"""
+Item ID
+"""
+		id: ID!
+"""
+Note title
+"""
+		title: String!
+"""
+Note content
+"""
+		content: String!
+	): Note!
+"""
+Delete a note
+"""
+	removeNote(
+"""
+Note ID
+"""
+		id: ID!
+	): Boolean!
+"""
+Update a note
+"""
+	updateNote(
+"""
+Note ID
+"""
+		id: ID!
+"""
+New note title
+"""
+		title: String
+"""
+New note content
+"""
+		content: String
+	): Note!
+"""
+Upload a file
+"""
+	uploadFile(
+"""
+Item to attach file   to
+"""
+		id: ID!
+"""
+File title
+"""
+		title: String!
+"""
+File upload
+"""
+		file: FileUpload!
+	): File
+"""
+Delete a file
+"""
+	deleteFile(
+"""
+File ID
+"""
+		fileId: ID!
+	): Boolean!
+}
+
+input UpdatePassengerInput {
+	givenName: String
+	familyName: String
+	additionalNames: String
+	honorifics: String
+	knownAs: String
+	email: String
+	customerId: ID
+	dateOfBirth: Timestamp
+	passport: PassengerPassportInput
+	sex: Sex
+	telephone: String
+	clearDateOfBirth: Boolean
+	clearSex: Boolean
+}
+
+"""
+File upload type. This type is compatible with the Apollo file upload standard
+            
+            To manually submit a request which includes a file upload you must submit the request as a
+            MIME multipart request with the following part names:
+            
+            * `operations` containing a standard GQL request
+            * `map` containing a json object which maps a part name to a GQL variable:
+              * Object keys map to part names
+              * Object values are arrays of GQL variables to use the part for, each variable prefixed with `variables.`
+                e.g. `{ "thefile": ["variables.file"] }`
+            * Parts containing the file upload data, the name of this part is specified as a key in `map`
+            
+            Multiple file uploads can be submitted in a single request using multipart, but is not recommended.
+            
+"""
+scalar FileUpload
+
+type ProductReservationMutation {
+	create(
+"""
+Booking ID
+"""
+		bookingId: ID!
+		reservation: CreateProductReservationInput!
+		passengerIds: [ID!]
+	): BookingProductReservation!
+"""
+Confirm an existing product reservation
+"""
+	confirm(
+"""
+Reservation ID
+"""
+		id: ID!
+	): BookingProductReservation!
+"""
+Cancel a product reservation
+"""
+	cancel(
+"""
+Reservation ID
+"""
+		id: ID!
+	): BookingProductReservation!
+"""
+Update an existing reservation, updates may not be made to confirmed or cancelled reservations. Use `updateDescription` to change a description in any status
+"""
+	update(
+"""
+Reservation ID
+"""
+		id: ID!
+"""
+Updates
+"""
+		updates: UpdateProductReservationInput!
+	): BookingProductReservation!
+"""
+Set or clear a reservation's description. Unlike `update`, this works in any status
+"""
+	updateDescription(
+"""
+Reservation ID
+"""
+		id: ID!
+"""
+New description, null or empty to clear it
+"""
+		description: String
+	): BookingProductReservation!
+"""
+Archive a cancelled reservation. Reservations must be cancelled to be archived.
+"""
+	archive(
+"""
+Reservation ID
+"""
+		id: ID!
+	): BookingProductReservation!
+"""
+
+                        Split a product reservation from its parent product. 
+                        Creating a copy of the product, and re-assigning the reservation to the copied product.
+                        Allowing for changes to be made to the product which apply to this reservation only.
+                        
+"""
+	splitFromProduct(
+"""
+Reservation ID to be moved to a new product copy
+"""
+		id: ID!
+"""
+Name to give the created product copy
+"""
+		name: String
+	): BookingProductReservation!
+"""
+Add a note
+"""
+	addNote(
+"""
+Item ID
+"""
+		id: ID!
+"""
+Note title
+"""
+		title: String!
+"""
+Note content
+"""
+		content: String!
+	): Note!
+"""
+Delete a note
+"""
+	removeNote(
+"""
+Note ID
+"""
+		id: ID!
+	): Boolean!
+"""
+Update a note
+"""
+	updateNote(
+"""
+Note ID
+"""
+		id: ID!
+"""
+New note title
+"""
+		title: String
+"""
+New note content
+"""
+		content: String
+	): Note!
+}
+
+input UpdateProductReservationInput {
+	passengers: [ID!]
+	serviceStart: Timestamp
+	serviceEnd: Timestamp
+	price: MoneyInput
+	description: String
+}
+
+type TransactionMutation {
+	create(
+"""
+Booking ID
+"""
+		bookingId: ID!
+"""
+Transaction Details
+"""
+		transaction: CreateTransactionInput!
+	): Transaction!
+"""
+Capture the partial or full amount for an authorized transaction
+"""
+	capture(
+"""
+Transaction ID
+"""
+		id: ID!
+	): Transaction!
+"""
+Sign a transaction
+"""
+	sign(
+"""
+Organization ID
+"""
+		organizationId: ID!
+"""
+Payment method: either `doPayment` or `doSetup`
+"""
+		method: String!
+"""
+Sign transaction input
+"""
+		payload: JSON!
+	): String!
+}
+
+input CreateTransactionInput {
+	reference: String
+	description: String
+	amount: MoneyInput!
+	status: PaymentStatus!
+	category: TransactionCategory
+	callbackUrl: String
+}
+
+input UpdateTransportSlicePassengerInput {
+	ticketClass: String
+	ticketNumber: String
+	seatAllocation: String
+}
+
+type SingleBookingMutation implements TaggableMutation{
+	booking: Booking!
+	tags: TagAssociationMutation!
+	cakes: CakeMutation!
+	files: FileMutation!
+}
+
+interface TaggableMutation {
+	tags: TagAssociationMutation!
+}
+
+type TagAssociationMutation {
+	update(
+		operation: TagOperation!
+"""
+Tags
+"""
+		tags: [String!]
+	): [String!]
+}
+
+enum TagOperation {
+	ADD
+	REMOVE
+	REPLACE
+}
+
+type CakeMutation {
+	add(
+"""
+Cake to create
+"""
+		cake: CakeInput!
+	): Cake
+	update(
+		updates: [CakeUpdateInput!]!
+	): [Cake!]
+	remove(
+		id: ID!
+	): Cake
+}
+
+input CakeInput {
+	type: CakeType!
+	parent: ID
+	name: String!
+	presentation: JSON!
+	validation: JSON!
+	value: String
+	requiredBy: Timestamp
+}
+
+input CakeUpdateInput {
+	id: ID!
+	value: String!
+}
+
+type FileMutation {
+	upload(
+		title: String!
+"""
+File upload source
+"""
+		file: FileInput!
+"""
+Replace any existing attachment that has the same title
+"""
+		overwrite: Boolean
+	): File!
+}
+
+"""
+File input source, can be a direct file upload, a URL or a Base64 encoded string
+"""
+input FileInput {
+"""
+File input source, can be a direct file upload, a URL or a Base64 encoded string
+"""
+	file: FileUpload
+"""
+File input source, can be a direct file upload, a URL or a Base64 encoded string
+"""
+	url: String
+"""
+File input source, can be a direct file upload, a URL or a Base64 encoded string
+"""
+	content: Base64
+"""
+File input source, can be a direct file upload, a URL or a Base64 encoded string
+"""
+	filename: String
+}
+
+scalar Base64
+
+type ReservationMutation implements TaggableMutation{
+	tags: TagAssociationMutation!
+	reservation: BookingProductReservation!
+}
+
+type SinglePassengerMutation implements TaggableMutation{
+	passenger: Passenger!
+	tags: TagAssociationMutation!
+	cakes: CakeMutation!
+	files: FileMutation!
+}
+
+type DiscountsMutation {
+	create(
+		organizationId: ID!
+		discount: CreateDiscountInput!
+	): Discount!
+"""
+Validate a discount against a booking and apply it
+"""
+	apply(
+"""
+Booking ID
+"""
+		bookingId: ID!
+"""
+Discount ID, the ID of the discount's product
+"""
+		discountId: ID!
+	): BookingProductReservation
+"""
+Disable a discount: Disables the discount by setting the validity period to the past.
+"""
+	disable(
+"""
+Discount ID, the ID of the discount's product
+"""
+		id: ID!
+	): Discount
+"""
+Update a discount
+"""
+	update(
+"""
+Discount ID, the ID of the discount's product
+"""
+		id: ID!
+"""
+Updates
+"""
+		updates: UpdateDiscountInput!
+	): Discount!
+}
+
+input CreateDiscountInput {
+	code: String!
+	name: String!
+	value: Int!
+	isPercentage: Boolean!
+	criteria: JSON
+	functionUrn: String
+	validFrom: Timestamp
+	validTo: Timestamp
+	maximumUses: Int
+	isPerPassenger: Boolean!
+	isExclusive: Boolean!
+}
+
+input UpdateDiscountInput {
+	code: String
+	name: String
+	value: Int
+	isPercentage: Boolean
+	isPerPassenger: Boolean
+	isExclusive: Boolean
+	functionUrn: String
+	criteria: JSON
+	validFrom: Timestamp
+	validTo: Timestamp
+	maximumUses: Int
+}
+
+input CreateTransportStopInput {
+	name: String!
+	code: String
+	country: String!
+	city: String
+	timezone: String!
+	mode: TransportMode!
+}
+
+input UpdateTransportStopInput {
+	name: String
+	code: String
+	mode: TransportMode
+	country: String
+	city: String
+	timezone: String
+}
+
+input CreateTransportCarrierInput {
+	name: String!
+	code: String
+	mode: TransportMode!
+}
+
+input UpdateTransportCarrierInput {
+	name: String
+	code: String
+}
+
+input CreateTransportSliceInput {
+	departure: CreateTransportSliceTerminationInput!
+	arrival: CreateTransportSliceTerminationInput!
+	carrierId: ID!
+	affiliateCarrierId: ID
+	mode: TransportMode!
+	intermediateStop: Boolean!
+	name: String
+}
+
+input CreateTransportSliceTerminationInput {
+	stopId: ID!
+	timestamp: Timestamp!
+}
+
+input UpdateTransportSliceInput {
+	departure: CreateTransportSliceTerminationInput
+	arrival: CreateTransportSliceTerminationInput
+	mode: TransportMode
+	carrierId: ID
+	affiliateCarrierId: ID
+	clearAffiliateCarrier: Boolean
+	intermediateStop: Boolean
+	name: String
+}
+
+input CreateTransportInput {
+	slices: [CreateTransportSliceInput!]
+	name: String!
+	description: String!
+	groupName: String
+	element: String
+	category: String!
+	dates: DateRangeInput
+	occupancy: IntRangeInput
+	constraints: ProductConstraintsInput
+	inventory: InventoryInput
+	url: String
+	imageUrl: String
+	prices: [ProductPriceInput!]
+}
+
+input DateRangeInput {
+	start: Timestamp
+	end: Timestamp
+	duration: Int
+	kind: DateRangeKind
+}
+
+input IntRangeInput {
+	minimum: Int!
+	maximum: Int!
+}
+
+input ProductConstraintsInput {
+	minimumAge: Int
+	maximumAge: Int
+}
+
+input InventoryInput {
+	kind: InventoryKind
+	available: Int
+	errata: String
+}
+
+input ProductPriceInput {
+	currency: String!
+	amount: Int!
+	depositValue: Int
+	balanceDue: Timestamp
+}
+
+type ProductMutation {
+"""
+Create a new product
+"""
+	create(
+"""
+Organization
+"""
+		organizationId: ID!
+"""
+Product to create
+"""
+		product: CreateProductInput!
+	): Product!
+"""
+Update a product
+"""
+	update(
+		productId: ID!
+		updates: UpdateProductInput!
+	): Product!
+	providers: ProviderMutation!
+}
+
+input CreateProductInput {
+	name: String!
+	description: String!
+	groupName: String
+	element: String
+	category: String!
+	dates: DateRangeInput
+	occupancy: IntRangeInput
+	constraints: ProductConstraintsInput
+	inventory: InventoryInput
+	url: String
+	imageUrl: String
+	prices: [ProductPriceInput!]
+}
+
+input UpdateProductInput {
+	name: String
+	groupName: String
+	element: String
+	description: String
+	category: String
+	dates: DateRangeInput
+	prices: [ProductPriceInput!]
+	inventory: InventoryInput
+	occupancy: IntRangeInput
+	constraints: ProductConstraintsInput
+	url: String
+	imageUrl: String
+}
+
+type ProviderMutation {
+	create(
+		provider: CreateProviderInput!
+	): ProductProvider!
+"""
+Create/Update package products from the specified provider into the local system
+"""
+	sync(
+"""
+ID of provider to sync
+"""
+		id: ID!
+	): Int!
+}
+
+input CreateProviderInput {
+	organizationId: ID!
+	name: String!
+	descriptorUrl: String!
+	credentialId: String!
+	privateCredential: String!
+}
+
+type SingleProductMutation implements TaggableMutation{
+	tags: TagAssociationMutation!
+}
+
+type CustomerMutation {
+"""
+Create a new Customer
+"""
+	create(
+		customer: CreateCustomerInput!
+	): Customer
+"""
+Update an existing Customer
+"""
+	update(
+		id: ID!
+		updates: UpdateCustomerInput!
+	): Customer
+"""
+Delete a customer
+"""
+	delete(
+		id: ID!
+	): Boolean
+"""
+Merge two customers
+"""
+	merge(
+		source: ID!
+		target: ID!
+	): Customer
+"""
+Mark a customer as having been checked for duplicates.
+"""
+	suppressDuplicates(
+		id: ID!
+	): Customer
+"""
+Add a note
+"""
+	addNote(
+"""
+Item ID
+"""
+		id: ID!
+"""
+Note title
+"""
+		title: String!
+"""
+Note content
+"""
+		content: String!
+	): Note!
+"""
+Delete a note
+"""
+	removeNote(
+"""
+Note ID
+"""
+		id: ID!
+	): Boolean!
+"""
+Update a note
+"""
+	updateNote(
+"""
+Note ID
+"""
+		id: ID!
+"""
+New note title
+"""
+		title: String
+"""
+New note content
+"""
+		content: String
+	): Note!
+}
+
+input CreateCustomerInput {
+	organizationId: ID!
+	givenName: String
+	familyName: String
+	additionalNames: String
+	honorifics: String
+	email: String!
+	knownAs: String
+	telephone: String
+	notes: [CreateNoteInput]
+	address: AddressInput
+	sex: Sex
+	dateOfBirth: Timestamp
+}
+
+"""
+`Address` represents a postal address.
+"""
+input AddressInput {
+"""
+`Address` represents a postal address.
+"""
+	line1: String!
+"""
+`Address` represents a postal address.
+"""
+	line2: String
+"""
+`Address` represents a postal address.
+"""
+	line3: String
+"""
+`Address` represents a postal address.
+"""
+	city: String!
+"""
+`Address` represents a postal address.
+"""
+	state: String
+"""
+`Address` represents a postal address.
+"""
+	country: String!
+"""
+`Address` represents a postal address.
+"""
+	postalCode: String!
+}
+
+input UpdateCustomerInput {
+	givenName: String
+	familyName: String
+	additionalNames: String
+	honorifics: String
+	knownAs: String
+	email: String
+	address: AddressInput
+	telephone: String
+	sex: Sex
+	dateOfBirth: Timestamp
+}
+
+type SingleCustomerMutation {
+	customer: Customer!
+	tags: TagAssociationMutation!
+	cakes: CakeMutation!
+}
+
+type TagsMutation {
+	update(
+		organizationId: ID!
+		scope: TagScope!
+		tag: String!
+		updates: TagPropertyUpdates!
+	): Tag!
+	create(
+		organizationId: String!
+		scope: TagScope!
+		tag: String!
+		properties: CreateTagPropertiesInput!
+	): Tag!
+}
+
+input TagPropertyUpdates {
+	color: String
+	description: String
+}
+
+input CreateTagPropertiesInput {
+	color: String
+	description: String
+}
+
+input UpdateUserSettingsInput {
+	default_currency: String
+}
+
+type OAuthMutation {
+"""
+Authorize an OAuth client
+"""
+	authorize(
+"""
+ID of the app to authorize
+"""
+		clientId: ID!
+"""
+Redirect URI
+"""
+		redirectUri: String!
+"""
+Opaque shared state token
+"""
+		state: String
+"""
+Authorized Scopes
+"""
+		scopes: [String!]
+	): String!
+"""
+Create a new OAuth Client
+"""
+	createClient(
+		client: CreateOAuthClientInput!
+	): CreateOAuthClientPayload!
+"""
+Update an OAuth client
+"""
+	updateClient(
+"""
+ID of the client to update
+"""
+		clientId: ID!
+		client: UpdateOAuthClientInput!
+	): OAuthClient!
+"""
+Disable (de-register) an OAuth client. This cannot be undone through the API.
+"""
+	disableClient(
+"""
+ID of the client to disable
+"""
+		clientId: ID!
+	): OAuthClient!
+}
+
+input CreateOAuthClientInput {
+	organizationId: ID!
+	redirectUris: [String!]
+	grantTypes: [OAuthGrantType!]!
+	name: String!
+	description: String
+	homepageUrl: String
+	privacyPolicyUrl: String
+	termsOfServiceUrl: String
+	supportContact: String
+}
+
+"""
+Result of creating an OAuth client
+"""
+type CreateOAuthClientPayload {
+"""
+The newly created client
+"""
+	client: OAuthClient!
+"""
+Client secret. Only available here; it cannot be retrieved again.
+"""
+	secret: String!
+}
+
+input UpdateOAuthClientInput {
+	name: String
+	redirectUris: [String!]
+	description: String
+	homepageUrl: String
+	privacyPolicyUrl: String
+	termsOfServiceUrl: String
+	supportContact: String
+}
+

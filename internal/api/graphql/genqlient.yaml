@@ -1,0 +1,14 @@
+# genqlient configuration. Regenerate with `go generate ./...` (or `make generate`)
+# after refreshing schema.graphql with `rezkit-tui dev schema`.
+schema: schema.graphql
+operations:
+  - queries/*.graphql
+generated: generated.go
+package: graphql
+context_type: context.Context
+optional: pointer
+bindings:
+  Timestamp:
+    type: github.com/rezkit/tui/internal/api/scalar.Timestamp
+  JSON:
+    type: encoding/json.RawMessage
