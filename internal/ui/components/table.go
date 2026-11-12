@@ -168,6 +168,11 @@ func (t *Table) syncColumns() {
 		fixed += max(c.MinWidth, len(c.Title)+2) + 2 // cell padding
 	}
 	spare := max(t.width-fixed, 0)
+	widths := make([]int, len(t.columns))
+	for i, c := range t.columns {
+		widths[i] = max(c.MinWidth, len(c.Title)+2) + spare*max(c.Weight, 1)/max(totalWeight, 1)
+	}
+	t.fitWidths(widths)
 	for i, c := range t.columns {
 		title := c.Title
 		if c.SortKey != "" && c.SortKey == t.sort.Field {
@@ -177,7 +182,7 @@ func (t *Table) syncColumns() {
 				title += " ▲"
 			}
 		}
-		w := max(c.MinWidth, len(c.Title)+2) + spare*max(c.Weight, 1)/max(totalWeight, 1)
+		w := widths[i]
 		if c.Right {
 			title = padLeft(title, w)
 		}
@@ -185,6 +190,41 @@ func (t *Table) syncColumns() {
 	}
 	t.inner.SetColumns(cols)
 	t.inner.SetRows(t.displayRows())
+}
+
+// fitWidths narrows columns when their minimums overflow the table: first
+// the flexible text columns (Weight > 1), then other text columns down to
+// their title, then titles are cut. Right-aligned (numeric) columns keep
+// their width. Within a pass the widest column gives way first.
+func (t *Table) fitWidths(widths []int) {
+	if t.width <= 0 {
+		return
+	}
+	over := -t.width
+	for _, w := range widths {
+		over += w + 2 // cell padding
+	}
+	passes := []func(c Column) (int, bool){
+		func(c Column) (int, bool) { return max(len(c.Title), 8), c.Weight > 1 },
+		func(c Column) (int, bool) { return max(len(c.Title), 6), true },
+		func(c Column) (int, bool) { return 4, true },
+	}
+	for _, pass := range passes {
+		for over > 0 {
+			widest := -1
+			for i, c := range t.columns {
+				floor, ok := pass(c)
+				if ok && !c.Right && widths[i] > floor && (widest < 0 || widths[i] > widths[widest]) {
+					widest = i
+				}
+			}
+			if widest < 0 {
+				break
+			}
+			widths[widest]--
+			over--
+		}
+	}
 }
 
 // displayRows returns the current page with right-aligned cells padded to
