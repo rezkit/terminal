@@ -11,7 +11,8 @@ go build -o bin/rezkit-tui ./cmd/rezkit-tui   # or: make build
 ./bin/rezkit-tui                              # browse your organizations
 ```
 
-Keys: `enter` open · `/` filter · `x` clear filter · `s`/`S` sort column/direction ·
+Keys: `tab`/`1-3` switch between Bookings, Customers and Transactions · `enter` open ·
+`/` filter · `x` clear filter · `s`/`S` sort column/direction ·
 `n`/`p` page · `ctrl+r` reload · `w` switch workspace · `esc` back · `?` help · `q` quit.
 
 ## Configuration
@@ -51,20 +52,22 @@ The last-used workspace is stored in `state.toml`; the app never rewrites
 | `internal/api/scalar` | Go types for custom scalars (`Timestamp`) |
 | `internal/ui` | Root app: screen stack, modal layer, header/status/help |
 | `internal/ui/components` | Server-paginated, server-sorted `Table`; static `Grid`; text helpers |
-| `internal/ui/screens` | Login, workspace picker, bookings list + filter modal, booking screen (tabs; invoice/itinerary), generic detail view |
+| `internal/ui/screens` | Login, workspace picker, home sections (bookings, customers, transactions lists with filter modals), booking screen (tabs; invoice/itinerary), customer screen (tabs; bookings open the booking), generic detail view (unused) |
 
 ## GraphQL client
 
 Workspaces are RezKit organizations; the selected organization is passed as
-the `organizationId` argument. Bookings use the Relay-style `bookings.list`
-query, so paging is cursor-based and sorting is server-side (reference,
-description, created).
+the `organizationId` argument. Bookings, customers and transactions use Relay-style
+connections, so paging is cursor-based and sorting is server-side (bookings:
+reference, description, created; customers: family name, email, city, created).
+The transactions query takes no sort argument, so that list has a fixed order
+and opening a transaction shows its booking's payments.
 
 To change what is fetched:
 
 1. Edit `internal/api/graphql/queries/*.graphql`.
 2. `go generate ./internal/api/graphql` (or `make generate`).
-3. Map the generated types to the `api` types in `internal/api/rezkit.go`.
+3. Map the generated types to the `api` types in `internal/api/rezkit*.go`.
 
 Refresh the schema with `rezkit-tui dev schema` (introspection works without
 logging in). The server returns fields in no fixed order, so a refreshed

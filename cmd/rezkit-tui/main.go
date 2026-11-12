@@ -277,7 +277,7 @@ func runTUI(ctx context.Context, cfg *config.Config, demo bool) error {
 
 	app := ui.NewApp(ui.Routes{
 		WorkspacePicker: picker,
-		Home:            func(api.Workspace) ui.Screen { return screens.NewBookings(svc) },
+		Home:            func(api.Workspace) ui.Screen { return screens.NewHome(svc) },
 	}, start, user)
 	_, err = tea.NewProgram(app, tea.WithContext(ctx)).Run()
 	if errors.Is(err, tea.ErrProgramKilled) && ctx.Err() != nil {

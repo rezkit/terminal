@@ -257,7 +257,7 @@ func (b *Booking) refresh() {
 	case tabPayments:
 		content = b.payments(w)
 	case tabNotes:
-		content = b.notes(w)
+		content = notesView(b.detail.Notes, w)
 	}
 	b.vp.SetContent(components.ClampLines(content, w, -1))
 }
@@ -318,18 +318,9 @@ func (b *Booking) headerCard() string {
 
 func (b *Booking) tabBar() string {
 	d := b.detail
-	counts := [tabCount]string{"", count(len(d.Passengers), false), count(len(d.Reservations), false),
+	counts := []string{"", count(len(d.Passengers), false), count(len(d.Reservations), false),
 		count(len(d.Transactions), d.TransactionsDenied()), count(len(d.Notes), d.NotesDenied())}
-	var parts []string
-	for i, title := range tabTitles {
-		label := fmt.Sprintf("%d %s%s", i+1, title, counts[i])
-		if bookingTab(i) == b.tab {
-			parts = append(parts, theme.TabOn.Render(label))
-		} else {
-			parts = append(parts, theme.Tab.Render(label))
-		}
-	}
-	return "\n" + strings.Join(parts, " ") + "\n" + theme.Rule.Render(strings.Repeat("─", b.w))
+	return tabBar(tabTitles[:], counts, int(b.tab), b.w)
 }
 
 func count(n int, denied bool) string {
@@ -364,29 +355,8 @@ func (b *Booking) overview(w int) string {
 	} else {
 		right += strings.Join(attn, "\n")
 	}
-	right += "\n\n" + heading("Notes", -1) + "\n"
-	switch {
-	case d.NotesDenied():
-		right += theme.Muted.Render("Not available (access denied)")
-	case len(d.Notes) == 0:
-		right += theme.Muted.Render("No notes")
-	default:
-		for i, n := range d.Notes {
-			if i == 2 {
-				right += theme.Muted.Render(fmt.Sprintf("…and %d more (press 5)", len(d.Notes)-2))
-				break
-			}
-			right += theme.Bold.Render(n.Title) + "\n" + n.Content + "\n"
-		}
-	}
-
-	if w < 90 { // stack the columns
-		return left + "\n\n" + lipgloss.NewStyle().Width(w).Render(right)
-	}
-	half := (w - 4) / 2
-	return lipgloss.JoinHorizontal(lipgloss.Top,
-		lipgloss.NewStyle().Width(half).Render(components.ClampLines(left, half, -1)), "    ",
-		lipgloss.NewStyle().Width(half).Render(right))
+	right += "\n\n" + heading("Notes", -1) + "\n" + notesPreview(d.Notes, "5")
+	return columns(left, right, w)
 }
 
 // attention lists what an agent should look at: unconfirmed reservations,
@@ -468,22 +438,6 @@ func (b *Booking) payments(w int) string {
 			api.StatusLabel(t.Category), badge(t.Status), priceOrDash(t.Amount)})
 	}
 	return g.Render(w) + "\n\n" + summary
-}
-
-func (b *Booking) notes(w int) string {
-	d := b.detail
-	switch {
-	case d.NotesDenied():
-		return theme.Muted.Render("Notes are not available (access denied)")
-	case len(d.Notes) == 0:
-		return theme.Muted.Render("No notes")
-	}
-	var parts []string
-	for _, n := range d.Notes {
-		parts = append(parts, theme.Bold.Render(n.Title)+theme.Muted.Render("  "+stamp(n.Created))+"\n"+
-			lipgloss.NewStyle().Width(w).Render(n.Content))
-	}
-	return strings.Join(parts, "\n\n")
 }
 
 // reservations renders the view switch, the invoice or itinerary list
@@ -625,123 +579,6 @@ func (b *Booking) selectedStrip(w int) string {
 		components.Truncate(line1, w) + "\n" + components.Truncate(line2, w)
 }
 
-// --- formatting helpers ------------------------------------------------------------
-
-func badge(status string) string {
-	return lipgloss.NewStyle().Foreground(theme.StatusColor(status)).Render("● " + api.StatusLabel(status))
-}
-
-func heading(title string, n int) string {
-	h := theme.Heading.Render(strings.ToUpper(title))
-	if n >= 0 {
-		h += theme.Muted.Render(fmt.Sprintf(" %d", n))
-	}
-	return h
-}
-
-func kv(labelW int, pairs ...string) string {
-	var lines []string
-	for i := 0; i+1 < len(pairs); i += 2 {
-		lines = append(lines, theme.Muted.Width(labelW).Render(pairs[i])+pairs[i+1])
-	}
-	return strings.Join(lines, "\n")
-}
-
-func paidBar(paid, total api.Money, w int) string {
-	w = max(w, 4)
-	n, pct := 0, 0
-	if total.Minor > 0 {
-		n = int(min(max(int64(w)*paid.Minor/total.Minor, 0), int64(w)))
-		pct = int(paid.Minor * 100 / total.Minor)
-	}
-	return lipgloss.NewStyle().Foreground(theme.Success).Render(strings.Repeat("█", n)) +
-		theme.Rule.Render(strings.Repeat("░", w-n)) + theme.Muted.Render(fmt.Sprintf(" %d%% paid", pct))
-}
-
-func outstanding(m api.Money) string {
-	if m.Minor > 0 {
-		return theme.Warn.Render(api.FormatMoney(m))
-	}
-	return api.FormatMoney(m)
-}
-
-func travelling(d *api.BookingDetail) int {
-	n := 0
-	for _, p := range d.Passengers {
-		if p.Cancelled.IsZero() {
-			n++
-		}
-	}
-	return n
-}
-
-func plural(n int, one, many string) string {
-	if n == 1 {
-		return "1 " + one
-	}
-	return fmt.Sprintf("%d %s", n, many)
-}
-
-func orDash(s string) string {
-	if strings.TrimSpace(s) == "" {
-		return "—"
-	}
-	return s
-}
-
-func nonEmpty(ss ...string) []string {
-	var out []string
-	for _, s := range ss {
-		if s != "" {
-			out = append(out, s)
-		}
-	}
-	return out
-}
-
-func stamp(t time.Time) string {
-	if t.IsZero() {
-		return "—"
-	}
-	return t.Local().Format("2 Jan 2006 15:04")
-}
-
-func day(t time.Time) string {
-	if t.IsZero() {
-		return "—"
-	}
-	return api.Civil(t).Format("2 Jan 2006")
-}
-
-// dateSpan formats a civil date range with the given layout.
-func dateSpan(start, end time.Time, layout string) string {
-	switch {
-	case start.IsZero() && end.IsZero():
-		return "—"
-	case end.IsZero() || civilDay(end).Equal(civilDay(start)):
-		return api.Civil(start).Format(layout)
-	case start.IsZero():
-		return "until " + api.Civil(end).Format(layout)
-	}
-	return api.Civil(start).Format(layout) + " → " + api.Civil(end).Format(layout)
-}
-
-// compactSpan is a table-friendly range: "Sat 11 Jul", "11–15 Jul", "30 Jun–2 Jul".
-func compactSpan(start, end time.Time) string {
-	if start.IsZero() {
-		return "—"
-	}
-	s := api.Civil(start)
-	if end.IsZero() || !civilDay(end).After(civilDay(start)) {
-		return s.Format("Mon 2 Jan")
-	}
-	e := api.Civil(end)
-	if s.Year() == e.Year() && s.Month() == e.Month() {
-		return fmt.Sprintf("%d–%s", s.Day(), e.Format("2 Jan"))
-	}
-	return s.Format("2 Jan") + "–" + e.Format("2 Jan")
-}
-
 // productLabel is the reservation's product name with its description in
 // subtle text. plain drops the styling (for highlighted rows, where nested
 // colours would cut through the selection background).
@@ -754,4 +591,10 @@ func productLabel(r api.Reservation, plain bool) string {
 		return name + "  " + r.Description
 	}
 	return name + theme.Muted.Render("  "+r.Description)
+}
+
+// OnPayments opens the screen on the Payments tab (e.g. from a transaction).
+func (b *Booking) OnPayments() *Booking {
+	b.tab = tabPayments
+	return b
 }

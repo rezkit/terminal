@@ -14,7 +14,6 @@ import (
 	"github.com/rezkit/tui/internal/api"
 	"github.com/rezkit/tui/internal/ui"
 	"github.com/rezkit/tui/internal/ui/components"
-	"github.com/rezkit/tui/internal/ui/theme"
 )
 
 const bookingsTable = "bookings"
@@ -24,12 +23,12 @@ type Bookings struct {
 	svc    api.Service
 	table  *components.Table
 	filter api.BookingFilter
-	keys   bookingsKeys
+	keys   listKeyMap
 	width  int
 	height int
 }
 
-type bookingsKeys struct {
+type listKeyMap struct {
 	Filter, ClearFilter key.Binding
 	table               components.TableKeys
 }
@@ -37,11 +36,8 @@ type bookingsKeys struct {
 // NewBookings creates the bookings list screen.
 func NewBookings(svc api.Service) *Bookings {
 	b := &Bookings{
-		svc: svc,
-		keys: bookingsKeys{
-			Filter:      key.NewBinding(key.WithKeys("/", "f"), key.WithHelp("/", "filter")),
-			ClearFilter: key.NewBinding(key.WithKeys("x"), key.WithHelp("x", "clear filter")),
-		},
+		svc:  svc,
+		keys: listKeys(),
 	}
 	cols := []components.Column{
 		// Only columns the API can sort by server-side get a SortKey.
@@ -130,23 +126,11 @@ func (b *Bookings) View(width, height int) string {
 
 func (b *Bookings) filterSummary() string {
 	f := b.filter
-	var parts []string
-	if f.Reference != "" {
-		parts = append(parts, fmt.Sprintf("reference contains %q", f.Reference))
-	}
+	parts := containsPart("reference", f.Reference)
 	if f.Status != "" {
 		parts = append(parts, "status "+api.StatusLabel(f.Status))
 	}
-	if !f.CreatedFrom.IsZero() {
-		parts = append(parts, "created from "+f.CreatedFrom.Format(dateLayout))
-	}
-	if !f.CreatedTo.IsZero() {
-		parts = append(parts, "created to "+f.CreatedTo.Format(dateLayout))
-	}
-	if len(parts) == 0 {
-		return theme.Muted.Render("No filter · press / to filter")
-	}
-	return theme.Bold.Render("Filter: ") + strings.Join(parts, ", ") + theme.Muted.Render("  (x to clear)")
+	return filterLine(append(parts, dateParts(f.CreatedFrom, f.CreatedTo)...))
 }
 
 const dateLayout = "2006-01-02"
@@ -160,34 +144,21 @@ func dateOrDash(t time.Time) string {
 
 type bookingFilterAppliedMsg struct{ filter api.BookingFilter }
 
-// bookingFilterModal edits a BookingFilter with a huh form.
-type bookingFilterModal struct {
-	form              *huh.Form
-	reference, status string
-	from, to          string
-}
-
-func newBookingFilterModal(f api.BookingFilter) *bookingFilterModal {
-	m := &bookingFilterModal{reference: f.Reference, status: f.Status}
-	if !f.CreatedFrom.IsZero() {
-		m.from = f.CreatedFrom.Format(dateLayout)
-	}
-	if !f.CreatedTo.IsZero() {
-		m.to = f.CreatedTo.Format(dateLayout)
-	}
+func newBookingFilterModal(f api.BookingFilter) *formModal {
+	ref, status, dates := f.Reference, f.Status, newDateRange(f.CreatedFrom, f.CreatedTo)
 	statuses := []huh.Option[string]{huh.NewOption("Any", "")}
 	for _, s := range api.BookingStatuses {
 		statuses = append(statuses, huh.NewOption(api.StatusLabel(s), s))
 	}
-	m.form = huh.NewForm(huh.NewGroup(
-		huh.NewInput().Title("Reference contains").Value(&m.reference),
-		huh.NewSelect[string]().Title("Status").Options(statuses...).Value(&m.status),
-		huh.NewInput().Title("Created from").Placeholder("YYYY-MM-DD").Value(&m.from).Validate(validDate),
-		huh.NewInput().Title("Created to").Placeholder("YYYY-MM-DD").Value(&m.to).Validate(validDate),
-	)).WithShowHelp(true).WithTheme(huh.ThemeFunc(huh.ThemeCharm)).WithKeyMap(filterKeyMap())
-	m.form.SubmitCmd = m.submit
-	m.form.CancelCmd = ui.CloseModal
-	return m
+	submit := func() tea.Msg {
+		out := api.BookingFilter{Reference: strings.TrimSpace(ref), Status: status}
+		out.CreatedFrom, out.CreatedTo = dates.bounds()
+		return bookingFilterAppliedMsg{filter: out}
+	}
+	return newFormModal("Filter bookings", submit, append([]huh.Field{
+		huh.NewInput().Title("Reference contains").Value(&ref),
+		huh.NewSelect[string]().Title("Status").Options(statuses...).Value(&status),
+	}, dates.fields()...)...)
 }
 
 func parseDate(s string) (time.Time, error) {
@@ -202,32 +173,6 @@ func validDate(s string) error {
 		return fmt.Errorf("use YYYY-MM-DD")
 	}
 	return nil
-}
-
-func (m *bookingFilterModal) submit() tea.Msg {
-	f := api.BookingFilter{Reference: strings.TrimSpace(m.reference), Status: m.status}
-	f.CreatedFrom, _ = parseDate(m.from)
-	if to, err := parseDate(m.to); err == nil {
-		f.CreatedTo = to.AddDate(0, 0, 1).Add(-time.Second) // inclusive: end of that day
-	}
-	return bookingFilterAppliedMsg{filter: f}
-}
-
-func (m *bookingFilterModal) Init() tea.Cmd { return m.form.Init() }
-
-func (m *bookingFilterModal) Title() string { return "Filter bookings" }
-
-func (m *bookingFilterModal) Update(msg tea.Msg) (ui.Modal, tea.Cmd) {
-	model, cmd := m.form.Update(msg)
-	if f, ok := model.(*huh.Form); ok {
-		m.form = f
-	}
-	return m, cmd
-}
-
-func (m *bookingFilterModal) View(maxWidth, maxHeight int) string {
-	m.form.WithWidth(min(maxWidth, 60))
-	return m.form.View()
 }
 
 // filterKeyMap makes esc cancel the form; ctrl+c is reserved for quitting.

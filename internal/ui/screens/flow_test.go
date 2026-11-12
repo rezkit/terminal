@@ -27,7 +27,7 @@ type harness struct {
 func newHarness(t *testing.T, svc api.Service) *harness {
 	app := ui.NewApp(ui.Routes{
 		WorkspacePicker: func() ui.Screen { return NewWorkspaces(svc, "", nil) },
-		Home:            func(api.Workspace) ui.Screen { return NewBookings(svc) },
+		Home:            func(api.Workspace) ui.Screen { return NewHome(svc) },
 	}, NewWorkspaces(svc, "", nil), "tester")
 	h := &harness{t: t, app: app}
 	h.run(app.Init())
@@ -90,7 +90,7 @@ func (h *harness) view() string { return h.app.View().Content }
 
 func (h *harness) mustContain(subs ...string) {
 	h.t.Helper()
-	v := h.view()
+	v := stripANSI(h.view())
 	for _, s := range subs {
 		if !strings.Contains(v, s) {
 			h.t.Fatalf("view missing %q:\n%s", s, v)
@@ -103,11 +103,11 @@ func TestWorkspaceToBookingsFlow(t *testing.T) {
 	h.mustContain("Select a workspace", "Alpine Adventures", "Coastal Cruises")
 
 	h.key("enter")
-	h.mustContain("Bookings", "Alpine Adventures", "Created ▼", "Page 1/8", "1–33 of 237") // 40 rows high: 33 per page
+	h.mustContain("Bookings", "Alpine Adventures", "Created ▼", "Page 1/8", "1–32 of 237") // 40 rows high: 32 per page
 
 	// Paging forward and back.
 	h.key("n")
-	h.mustContain("Page 2/", "34–66 of 237") // 40 rows high: 33 rows per page
+	h.mustContain("Page 2/", "33–64 of 237")
 	h.key("p")
 	h.mustContain("Page 1/")
 

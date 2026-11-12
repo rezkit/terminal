@@ -49,10 +49,10 @@ func StatusColor(status string) color.Color {
 	switch status {
 	case "CONFIRMED":
 		return Success
-	case "PENDING", "PROCESSING", "ON_HOLD", "WAITLISTED", "CANCELLING":
+	case "PENDING", "PROCESSING", "ON_HOLD", "WAITLISTED", "CANCELLING", "AUTHORIZED":
 		return Warning
-	case "ERROR":
+	case "ERROR", "FAILED":
 		return Danger
 	}
-	return Subtle // cancelled, archived, void
+	return Subtle // cancelled, archived, void, refunded
 }
