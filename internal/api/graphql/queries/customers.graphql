@@ -1,0 +1,93 @@
+query ListCustomers(
+  $organizationId: ID!
+  $filters: CustomerFilters
+  $first: Int
+  $after: String
+  $sortBy: CustomerSort
+  $direction: SortDirection
+) {
+  customers {
+    list(
+      organizationId: $organizationId
+      filters: $filters
+      first: $first
+      after: $after
+      sortBy: $sortBy
+      direction: $direction
+    ) {
+      totalCount
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      edges {
+        node {
+          id
+          honorifics
+          givenName
+          familyName
+          email
+          telephone
+          createdAt
+          address {
+            city
+            country
+          }
+        }
+      }
+    }
+  }
+}
+
+query GetCustomer($id: ID!) {
+  customers {
+    customer(id: $id) {
+      id
+      honorifics
+      givenName
+      familyName
+      knownAs
+      email
+      telephone
+      dateOfBirth
+      sex
+      tags
+      createdAt
+      updatedAt
+      address {
+        line1
+        line2
+        line3
+        city
+        state
+        postalCode
+        country
+      }
+      bookings {
+        id
+        reference
+        status
+        description
+        createdAt
+        dates {
+          start
+          end
+        }
+        totalPrice {
+          amount
+          currency
+        }
+        outstandingBalance {
+          amount
+          currency
+        }
+      }
+      notes {
+        id
+        title
+        content
+        createdAt
+      }
+    }
+  }
+}

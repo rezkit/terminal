@@ -77,23 +77,14 @@ func bookingFilters(f BookingFilter) *graphql.BookingFilters {
 	var out graphql.BookingFilters
 	used := false
 	if f.Reference != "" {
-		op := graphql.StringFilterOperationContains
-		ref := f.Reference
-		out.Reference = &graphql.StringFilter{Operation: &op, Value: &ref}
+		out.Reference = contains(f.Reference)
 		used = true
 	}
 	if f.Status != "" {
 		out.Status = &graphql.BookingStatusFilter{Include: []graphql.BookingStatus{graphql.BookingStatus(f.Status)}}
 		used = true
 	}
-	if !f.CreatedFrom.IsZero() || !f.CreatedTo.IsZero() {
-		tf := &graphql.TimestampFilter{}
-		if !f.CreatedFrom.IsZero() {
-			tf.Since = &scalar.Timestamp{Time: f.CreatedFrom}
-		}
-		if !f.CreatedTo.IsZero() {
-			tf.Until = &scalar.Timestamp{Time: f.CreatedTo}
-		}
+	if tf := timeRange(f.CreatedFrom, f.CreatedTo); tf != nil {
 		out.CreatedAt = tf
 		used = true
 	}
@@ -108,23 +99,14 @@ func (r *RezKit) Bookings(ctx context.Context, q BookingQuery) (Page[Booking], e
 	if err != nil {
 		return Page[Booking]{}, err
 	}
-	first := q.Page.Size
-	var after *string
-	if q.Page.Cursor != "" {
-		after = &q.Page.Cursor
-	}
+	first, after := pageArgs(q.Page)
 	var sortBy *graphql.BookingListSort
 	var dir *graphql.SortDirection
 	if s, ok := bookingSorts[q.Sort.Field]; ok {
-		sortBy = &s
-		d := graphql.SortDirectionAsc
-		if q.Sort.Desc {
-			d = graphql.SortDirectionDesc
-		}
-		dir = &d
+		sortBy, dir = &s, direction(q.Sort)
 	}
 
-	resp, err := graphql.ListBookings(ctx, r.client, org, bookingFilters(q.Filter), &first, after, sortBy, dir)
+	resp, err := graphql.ListBookings(ctx, r.client, org, bookingFilters(q.Filter), first, after, sortBy, dir)
 	if err != nil {
 		return Page[Booking]{}, err
 	}

@@ -108,6 +108,11 @@ type Service interface {
 
 	Bookings(ctx context.Context, q BookingQuery) (Page[Booking], error)
 	Booking(ctx context.Context, id string) (BookingDetail, error)
+
+	Customers(ctx context.Context, q CustomerQuery) (Page[CustomerRow], error)
+	Customer(ctx context.Context, id string) (CustomerDetail, error)
+
+	Transactions(ctx context.Context, q TransactionQuery) (Page[TransactionRow], error)
 }
 
 // Sort keys for bookings, as supported server-side by the API.
@@ -132,3 +137,8 @@ func StatusLabel(s string) string {
 	s = strings.ToLower(strings.ReplaceAll(s, "_", " "))
 	return strings.ToUpper(s[:1]) + s[1:]
 }
+
+var (
+	_ Service = (*RezKit)(nil)
+	_ Service = (*Fake)(nil)
+)

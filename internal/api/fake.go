@@ -19,7 +19,8 @@ type Fake struct {
 	mu         sync.Mutex
 	workspaces []Workspace
 	workspace  string
-	bookings   map[string][]Booking // by workspace ID
+	bookings   map[string][]Booking       // by workspace ID
+	details    map[string][]BookingDetail // derived lazily from bookings; read-only
 }
 
 // NewFake returns a Fake with two workspaces of generated bookings.
@@ -30,6 +31,7 @@ func NewFake() *Fake {
 			{ID: "ws-coastal", Name: "Coastal Cruises"},
 		},
 		bookings: map[string][]Booking{},
+		details:  map[string][]BookingDetail{},
 	}
 	for i, ws := range f.workspaces {
 		f.bookings[ws.ID] = generateBookings(uint64(i+1), 237-i*100)

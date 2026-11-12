@@ -187,6 +187,61 @@ func (v *CustomerFilters) GetCreatedAt() *TimestampFilter { return v.CreatedAt }
 // GetUpdatedAt returns CustomerFilters.UpdatedAt, and is useful for accessing the field via an interface.
 func (v *CustomerFilters) GetUpdatedAt() *TimestampFilter { return v.UpdatedAt }
 
+type CustomerSort string
+
+const (
+	// Sort customers lexically by given name
+	CustomerSortGivenName CustomerSort = "GIVEN_NAME"
+	// Sort customers lexically by familial name
+	CustomerSortFamilyName CustomerSort = "FAMILY_NAME"
+	// Sort customers lexically by "known as"
+	CustomerSortKnownAs CustomerSort = "KNOWN_AS"
+	// Sort customers lexically by e-mail address
+	CustomerSortEmail CustomerSort = "EMAIL"
+	// Sort customers chronologically by creation
+	CustomerSortCreatedAt CustomerSort = "CREATED_AT"
+	// Sort customers chronologically by modification
+	CustomerSortUpdatedAt CustomerSort = "UPDATED_AT"
+	// Sort customers lexically by telephone number
+	CustomerSortTelephone    CustomerSort = "TELEPHONE"
+	CustomerSortAddressLine1 CustomerSort = "ADDRESS_LINE1"
+	CustomerSortAddressLine2 CustomerSort = "ADDRESS_LINE2"
+	CustomerSortAddressLine3 CustomerSort = "ADDRESS_LINE3"
+	CustomerSortAddressCity  CustomerSort = "ADDRESS_CITY"
+	// Sort customers lexically by country code
+	CustomerSortAddressCountry CustomerSort = "ADDRESS_COUNTRY"
+	// Sort customers lexically by first name
+	CustomerSortFirstName CustomerSort = "FIRST_NAME"
+	// Sort customers lexically by last name
+	CustomerSortLastName CustomerSort = "LAST_NAME"
+	// Sort customers chronologically by date of birth
+	CustomerSortDateOfBirth CustomerSort = "DATE_OF_BIRTH"
+	// Sort customers chronologically by when they were last checked for duplicates
+	CustomerSortDuplicatesCheckedAt CustomerSort = "DUPLICATES_CHECKED_AT"
+	// Sort customers by their unique identifier
+	CustomerSortId CustomerSort = "ID"
+)
+
+var AllCustomerSort = []CustomerSort{
+	CustomerSortGivenName,
+	CustomerSortFamilyName,
+	CustomerSortKnownAs,
+	CustomerSortEmail,
+	CustomerSortCreatedAt,
+	CustomerSortUpdatedAt,
+	CustomerSortTelephone,
+	CustomerSortAddressLine1,
+	CustomerSortAddressLine2,
+	CustomerSortAddressLine3,
+	CustomerSortAddressCity,
+	CustomerSortAddressCountry,
+	CustomerSortFirstName,
+	CustomerSortLastName,
+	CustomerSortDateOfBirth,
+	CustomerSortDuplicatesCheckedAt,
+	CustomerSortId,
+}
+
 type DateRangeFilter struct {
 	Start *TimestampFilter `json:"start"`
 	End   *TimestampFilter `json:"end"`
@@ -1681,6 +1736,305 @@ type GetBookingResponse struct {
 // GetBookings returns GetBookingResponse.Bookings, and is useful for accessing the field via an interface.
 func (v *GetBookingResponse) GetBookings() GetBookingBookingsBookingQuery { return v.Bookings }
 
+// GetCustomerCustomersCustomerQuery includes the requested fields of the GraphQL type CustomerQuery.
+type GetCustomerCustomersCustomerQuery struct {
+	// Get a customer by ID
+	Customer *GetCustomerCustomersCustomerQueryCustomer `json:"customer"`
+}
+
+// GetCustomer returns GetCustomerCustomersCustomerQuery.Customer, and is useful for accessing the field via an interface.
+func (v *GetCustomerCustomersCustomerQuery) GetCustomer() *GetCustomerCustomersCustomerQueryCustomer {
+	return v.Customer
+}
+
+// GetCustomerCustomersCustomerQueryCustomer includes the requested fields of the GraphQL type Customer.
+// The GraphQL type's documentation follows.
+//
+// `Customer` represents CRM customer, it assumes no uniqueness
+// of any set of values between different customers, except in the case of a link to an external CRM.
+type GetCustomerCustomersCustomerQueryCustomer struct {
+	// Unique identifier. Unique between all items including those of different types
+	Id string `json:"id"`
+	// Customer honorifics ('Mr', 'さん', '先生', etc.)
+	Honorifics *string `json:"honorifics"`
+	// Given name of the customer
+	GivenName string `json:"givenName"`
+	// Family name of the customer
+	FamilyName string `json:"familyName"`
+	// An optional name field for the customer, such as a nickname, to be used in correspondence
+	KnownAs *string `json:"knownAs"`
+	// E-mail address for the customer. Must be a valid e-mail address
+	Email string `json:"email"`
+	// Primary telephone number for the customer
+	Telephone *string `json:"telephone"`
+	// Customer date of birth (date only)
+	DateOfBirth *scalar.Timestamp `json:"dateOfBirth"`
+	// Customer Sex
+	Sex  *Sex     `json:"sex"`
+	Tags []string `json:"tags"`
+	// Timestamp at which this item was initially created
+	CreatedAt scalar.Timestamp `json:"createdAt"`
+	// Timestamp of the most recent modification to this item
+	UpdatedAt scalar.Timestamp `json:"updatedAt"`
+	// Postal address for the customer
+	Address *GetCustomerCustomersCustomerQueryCustomerAddress `json:"address"`
+	// Customer's Bookings
+	Bookings []GetCustomerCustomersCustomerQueryCustomerBookingsBooking `json:"bookings"`
+	Notes    []GetCustomerCustomersCustomerQueryCustomerNotesNote       `json:"notes"`
+}
+
+// GetId returns GetCustomerCustomersCustomerQueryCustomer.Id, and is useful for accessing the field via an interface.
+func (v *GetCustomerCustomersCustomerQueryCustomer) GetId() string { return v.Id }
+
+// GetHonorifics returns GetCustomerCustomersCustomerQueryCustomer.Honorifics, and is useful for accessing the field via an interface.
+func (v *GetCustomerCustomersCustomerQueryCustomer) GetHonorifics() *string { return v.Honorifics }
+
+// GetGivenName returns GetCustomerCustomersCustomerQueryCustomer.GivenName, and is useful for accessing the field via an interface.
+func (v *GetCustomerCustomersCustomerQueryCustomer) GetGivenName() string { return v.GivenName }
+
+// GetFamilyName returns GetCustomerCustomersCustomerQueryCustomer.FamilyName, and is useful for accessing the field via an interface.
+func (v *GetCustomerCustomersCustomerQueryCustomer) GetFamilyName() string { return v.FamilyName }
+
+// GetKnownAs returns GetCustomerCustomersCustomerQueryCustomer.KnownAs, and is useful for accessing the field via an interface.
+func (v *GetCustomerCustomersCustomerQueryCustomer) GetKnownAs() *string { return v.KnownAs }
+
+// GetEmail returns GetCustomerCustomersCustomerQueryCustomer.Email, and is useful for accessing the field via an interface.
+func (v *GetCustomerCustomersCustomerQueryCustomer) GetEmail() string { return v.Email }
+
+// GetTelephone returns GetCustomerCustomersCustomerQueryCustomer.Telephone, and is useful for accessing the field via an interface.
+func (v *GetCustomerCustomersCustomerQueryCustomer) GetTelephone() *string { return v.Telephone }
+
+// GetDateOfBirth returns GetCustomerCustomersCustomerQueryCustomer.DateOfBirth, and is useful for accessing the field via an interface.
+func (v *GetCustomerCustomersCustomerQueryCustomer) GetDateOfBirth() *scalar.Timestamp {
+	return v.DateOfBirth
+}
+
+// GetSex returns GetCustomerCustomersCustomerQueryCustomer.Sex, and is useful for accessing the field via an interface.
+func (v *GetCustomerCustomersCustomerQueryCustomer) GetSex() *Sex { return v.Sex }
+
+// GetTags returns GetCustomerCustomersCustomerQueryCustomer.Tags, and is useful for accessing the field via an interface.
+func (v *GetCustomerCustomersCustomerQueryCustomer) GetTags() []string { return v.Tags }
+
+// GetCreatedAt returns GetCustomerCustomersCustomerQueryCustomer.CreatedAt, and is useful for accessing the field via an interface.
+func (v *GetCustomerCustomersCustomerQueryCustomer) GetCreatedAt() scalar.Timestamp {
+	return v.CreatedAt
+}
+
+// GetUpdatedAt returns GetCustomerCustomersCustomerQueryCustomer.UpdatedAt, and is useful for accessing the field via an interface.
+func (v *GetCustomerCustomersCustomerQueryCustomer) GetUpdatedAt() scalar.Timestamp {
+	return v.UpdatedAt
+}
+
+// GetAddress returns GetCustomerCustomersCustomerQueryCustomer.Address, and is useful for accessing the field via an interface.
+func (v *GetCustomerCustomersCustomerQueryCustomer) GetAddress() *GetCustomerCustomersCustomerQueryCustomerAddress {
+	return v.Address
+}
+
+// GetBookings returns GetCustomerCustomersCustomerQueryCustomer.Bookings, and is useful for accessing the field via an interface.
+func (v *GetCustomerCustomersCustomerQueryCustomer) GetBookings() []GetCustomerCustomersCustomerQueryCustomerBookingsBooking {
+	return v.Bookings
+}
+
+// GetNotes returns GetCustomerCustomersCustomerQueryCustomer.Notes, and is useful for accessing the field via an interface.
+func (v *GetCustomerCustomersCustomerQueryCustomer) GetNotes() []GetCustomerCustomersCustomerQueryCustomerNotesNote {
+	return v.Notes
+}
+
+// GetCustomerCustomersCustomerQueryCustomerAddress includes the requested fields of the GraphQL type Address.
+// The GraphQL type's documentation follows.
+//
+// `Address` represents a postal address.
+type GetCustomerCustomersCustomerQueryCustomerAddress struct {
+	Line1      string  `json:"line1"`
+	Line2      *string `json:"line2"`
+	Line3      *string `json:"line3"`
+	City       string  `json:"city"`
+	State      *string `json:"state"`
+	PostalCode string  `json:"postalCode"`
+	// ISO country code
+	Country string `json:"country"`
+}
+
+// GetLine1 returns GetCustomerCustomersCustomerQueryCustomerAddress.Line1, and is useful for accessing the field via an interface.
+func (v *GetCustomerCustomersCustomerQueryCustomerAddress) GetLine1() string { return v.Line1 }
+
+// GetLine2 returns GetCustomerCustomersCustomerQueryCustomerAddress.Line2, and is useful for accessing the field via an interface.
+func (v *GetCustomerCustomersCustomerQueryCustomerAddress) GetLine2() *string { return v.Line2 }
+
+// GetLine3 returns GetCustomerCustomersCustomerQueryCustomerAddress.Line3, and is useful for accessing the field via an interface.
+func (v *GetCustomerCustomersCustomerQueryCustomerAddress) GetLine3() *string { return v.Line3 }
+
+// GetCity returns GetCustomerCustomersCustomerQueryCustomerAddress.City, and is useful for accessing the field via an interface.
+func (v *GetCustomerCustomersCustomerQueryCustomerAddress) GetCity() string { return v.City }
+
+// GetState returns GetCustomerCustomersCustomerQueryCustomerAddress.State, and is useful for accessing the field via an interface.
+func (v *GetCustomerCustomersCustomerQueryCustomerAddress) GetState() *string { return v.State }
+
+// GetPostalCode returns GetCustomerCustomersCustomerQueryCustomerAddress.PostalCode, and is useful for accessing the field via an interface.
+func (v *GetCustomerCustomersCustomerQueryCustomerAddress) GetPostalCode() string {
+	return v.PostalCode
+}
+
+// GetCountry returns GetCustomerCustomersCustomerQueryCustomerAddress.Country, and is useful for accessing the field via an interface.
+func (v *GetCustomerCustomersCustomerQueryCustomerAddress) GetCountry() string { return v.Country }
+
+// GetCustomerCustomersCustomerQueryCustomerBookingsBooking includes the requested fields of the GraphQL type Booking.
+type GetCustomerCustomersCustomerQueryCustomerBookingsBooking struct {
+	// Unique identifier. Unique between all items including those of different types
+	Id string `json:"id"`
+	// A human-readable reference to the booking which is unique within an Organization
+	Reference string `json:"reference"`
+	// Status of a booking as a whole
+	Status BookingStatus `json:"status"`
+	// A short, editable description of the booking
+	Description *string `json:"description"`
+	// Timestamp at which this item was initially created
+	CreatedAt scalar.Timestamp `json:"createdAt"`
+	// Dates over which the booking is operating, giving the lower and upper bound of services which are included in the booking.
+	Dates GetCustomerCustomersCustomerQueryCustomerBookingsBookingDates `json:"dates"`
+	// Total price for the booking
+	TotalPrice GetCustomerCustomersCustomerQueryCustomerBookingsBookingTotalPriceMoney `json:"totalPrice"`
+	// Outstanding balance for the booking
+	OutstandingBalance GetCustomerCustomersCustomerQueryCustomerBookingsBookingOutstandingBalanceMoney `json:"outstandingBalance"`
+}
+
+// GetId returns GetCustomerCustomersCustomerQueryCustomerBookingsBooking.Id, and is useful for accessing the field via an interface.
+func (v *GetCustomerCustomersCustomerQueryCustomerBookingsBooking) GetId() string { return v.Id }
+
+// GetReference returns GetCustomerCustomersCustomerQueryCustomerBookingsBooking.Reference, and is useful for accessing the field via an interface.
+func (v *GetCustomerCustomersCustomerQueryCustomerBookingsBooking) GetReference() string {
+	return v.Reference
+}
+
+// GetStatus returns GetCustomerCustomersCustomerQueryCustomerBookingsBooking.Status, and is useful for accessing the field via an interface.
+func (v *GetCustomerCustomersCustomerQueryCustomerBookingsBooking) GetStatus() BookingStatus {
+	return v.Status
+}
+
+// GetDescription returns GetCustomerCustomersCustomerQueryCustomerBookingsBooking.Description, and is useful for accessing the field via an interface.
+func (v *GetCustomerCustomersCustomerQueryCustomerBookingsBooking) GetDescription() *string {
+	return v.Description
+}
+
+// GetCreatedAt returns GetCustomerCustomersCustomerQueryCustomerBookingsBooking.CreatedAt, and is useful for accessing the field via an interface.
+func (v *GetCustomerCustomersCustomerQueryCustomerBookingsBooking) GetCreatedAt() scalar.Timestamp {
+	return v.CreatedAt
+}
+
+// GetDates returns GetCustomerCustomersCustomerQueryCustomerBookingsBooking.Dates, and is useful for accessing the field via an interface.
+func (v *GetCustomerCustomersCustomerQueryCustomerBookingsBooking) GetDates() GetCustomerCustomersCustomerQueryCustomerBookingsBookingDates {
+	return v.Dates
+}
+
+// GetTotalPrice returns GetCustomerCustomersCustomerQueryCustomerBookingsBooking.TotalPrice, and is useful for accessing the field via an interface.
+func (v *GetCustomerCustomersCustomerQueryCustomerBookingsBooking) GetTotalPrice() GetCustomerCustomersCustomerQueryCustomerBookingsBookingTotalPriceMoney {
+	return v.TotalPrice
+}
+
+// GetOutstandingBalance returns GetCustomerCustomersCustomerQueryCustomerBookingsBooking.OutstandingBalance, and is useful for accessing the field via an interface.
+func (v *GetCustomerCustomersCustomerQueryCustomerBookingsBooking) GetOutstandingBalance() GetCustomerCustomersCustomerQueryCustomerBookingsBookingOutstandingBalanceMoney {
+	return v.OutstandingBalance
+}
+
+// GetCustomerCustomersCustomerQueryCustomerBookingsBookingDates includes the requested fields of the GraphQL type BookingDates.
+type GetCustomerCustomersCustomerQueryCustomerBookingsBookingDates struct {
+	// The start of the booking, which is the earliest start of any reservation on the booking which matches the given filter criteria.
+	Start *scalar.Timestamp `json:"start"`
+	// The end of the booking, which is the latest end of any reservation on the booking which matches the given filter criteria.
+	End *scalar.Timestamp `json:"end"`
+}
+
+// GetStart returns GetCustomerCustomersCustomerQueryCustomerBookingsBookingDates.Start, and is useful for accessing the field via an interface.
+func (v *GetCustomerCustomersCustomerQueryCustomerBookingsBookingDates) GetStart() *scalar.Timestamp {
+	return v.Start
+}
+
+// GetEnd returns GetCustomerCustomersCustomerQueryCustomerBookingsBookingDates.End, and is useful for accessing the field via an interface.
+func (v *GetCustomerCustomersCustomerQueryCustomerBookingsBookingDates) GetEnd() *scalar.Timestamp {
+	return v.End
+}
+
+// GetCustomerCustomersCustomerQueryCustomerBookingsBookingOutstandingBalanceMoney includes the requested fields of the GraphQL type Money.
+// The GraphQL type's documentation follows.
+//
+// Monetary value
+type GetCustomerCustomersCustomerQueryCustomerBookingsBookingOutstandingBalanceMoney struct {
+	// Monetary amount represented as an integer of the smallest currency denomination
+	Amount int `json:"amount"`
+	// Currency Code
+	Currency string `json:"currency"`
+}
+
+// GetAmount returns GetCustomerCustomersCustomerQueryCustomerBookingsBookingOutstandingBalanceMoney.Amount, and is useful for accessing the field via an interface.
+func (v *GetCustomerCustomersCustomerQueryCustomerBookingsBookingOutstandingBalanceMoney) GetAmount() int {
+	return v.Amount
+}
+
+// GetCurrency returns GetCustomerCustomersCustomerQueryCustomerBookingsBookingOutstandingBalanceMoney.Currency, and is useful for accessing the field via an interface.
+func (v *GetCustomerCustomersCustomerQueryCustomerBookingsBookingOutstandingBalanceMoney) GetCurrency() string {
+	return v.Currency
+}
+
+// GetCustomerCustomersCustomerQueryCustomerBookingsBookingTotalPriceMoney includes the requested fields of the GraphQL type Money.
+// The GraphQL type's documentation follows.
+//
+// Monetary value
+type GetCustomerCustomersCustomerQueryCustomerBookingsBookingTotalPriceMoney struct {
+	// Monetary amount represented as an integer of the smallest currency denomination
+	Amount int `json:"amount"`
+	// Currency Code
+	Currency string `json:"currency"`
+}
+
+// GetAmount returns GetCustomerCustomersCustomerQueryCustomerBookingsBookingTotalPriceMoney.Amount, and is useful for accessing the field via an interface.
+func (v *GetCustomerCustomersCustomerQueryCustomerBookingsBookingTotalPriceMoney) GetAmount() int {
+	return v.Amount
+}
+
+// GetCurrency returns GetCustomerCustomersCustomerQueryCustomerBookingsBookingTotalPriceMoney.Currency, and is useful for accessing the field via an interface.
+func (v *GetCustomerCustomersCustomerQueryCustomerBookingsBookingTotalPriceMoney) GetCurrency() string {
+	return v.Currency
+}
+
+// GetCustomerCustomersCustomerQueryCustomerNotesNote includes the requested fields of the GraphQL type Note.
+// The GraphQL type's documentation follows.
+//
+// Note allows arbitrary text notes to be added to supported entities. A note is attached to exactly one entity.
+// The note content is encrypted at-rest and is suitable for sensitive content.
+type GetCustomerCustomersCustomerQueryCustomerNotesNote struct {
+	// Unique identifier. Unique between all items including those of different types
+	Id string `json:"id"`
+	// Note title (plaintext)
+	Title string `json:"title"`
+	// Note body content
+	Content string `json:"content"`
+	// Timestamp at which this item was initially created
+	CreatedAt scalar.Timestamp `json:"createdAt"`
+}
+
+// GetId returns GetCustomerCustomersCustomerQueryCustomerNotesNote.Id, and is useful for accessing the field via an interface.
+func (v *GetCustomerCustomersCustomerQueryCustomerNotesNote) GetId() string { return v.Id }
+
+// GetTitle returns GetCustomerCustomersCustomerQueryCustomerNotesNote.Title, and is useful for accessing the field via an interface.
+func (v *GetCustomerCustomersCustomerQueryCustomerNotesNote) GetTitle() string { return v.Title }
+
+// GetContent returns GetCustomerCustomersCustomerQueryCustomerNotesNote.Content, and is useful for accessing the field via an interface.
+func (v *GetCustomerCustomersCustomerQueryCustomerNotesNote) GetContent() string { return v.Content }
+
+// GetCreatedAt returns GetCustomerCustomersCustomerQueryCustomerNotesNote.CreatedAt, and is useful for accessing the field via an interface.
+func (v *GetCustomerCustomersCustomerQueryCustomerNotesNote) GetCreatedAt() scalar.Timestamp {
+	return v.CreatedAt
+}
+
+// GetCustomerResponse is returned by GetCustomer on success.
+type GetCustomerResponse struct {
+	// Query Customers
+	Customers GetCustomerCustomersCustomerQuery `json:"customers"`
+}
+
+// GetCustomers returns GetCustomerResponse.Customers, and is useful for accessing the field via an interface.
+func (v *GetCustomerResponse) GetCustomers() GetCustomerCustomersCustomerQuery { return v.Customers }
+
 // Filter based on items which have one of the provided IDs
 type IDsFilter struct {
 	// Filter based on items which have one of the provided IDs
@@ -1887,6 +2241,357 @@ type ListBookingsResponse struct {
 
 // GetBookings returns ListBookingsResponse.Bookings, and is useful for accessing the field via an interface.
 func (v *ListBookingsResponse) GetBookings() ListBookingsBookingsBookingQuery { return v.Bookings }
+
+// ListCustomersCustomersCustomerQuery includes the requested fields of the GraphQL type CustomerQuery.
+type ListCustomersCustomersCustomerQuery struct {
+	// List customers, using Relay-style cursor pagination
+	List ListCustomersCustomersCustomerQueryListCustomerConnection `json:"list"`
+}
+
+// GetList returns ListCustomersCustomersCustomerQuery.List, and is useful for accessing the field via an interface.
+func (v *ListCustomersCustomersCustomerQuery) GetList() ListCustomersCustomersCustomerQueryListCustomerConnection {
+	return v.List
+}
+
+// ListCustomersCustomersCustomerQueryListCustomerConnection includes the requested fields of the GraphQL type CustomerConnection.
+type ListCustomersCustomersCustomerQueryListCustomerConnection struct {
+	// Total count of items in the connection.
+	TotalCount *int `json:"totalCount"`
+	// Page info of the connection
+	PageInfo *ListCustomersCustomersCustomerQueryListCustomerConnectionPageInfo `json:"pageInfo"`
+	// Edges of the connection
+	Edges []*ListCustomersCustomersCustomerQueryListCustomerConnectionEdgesCustomerEdge `json:"edges"`
+}
+
+// GetTotalCount returns ListCustomersCustomersCustomerQueryListCustomerConnection.TotalCount, and is useful for accessing the field via an interface.
+func (v *ListCustomersCustomersCustomerQueryListCustomerConnection) GetTotalCount() *int {
+	return v.TotalCount
+}
+
+// GetPageInfo returns ListCustomersCustomersCustomerQueryListCustomerConnection.PageInfo, and is useful for accessing the field via an interface.
+func (v *ListCustomersCustomersCustomerQueryListCustomerConnection) GetPageInfo() *ListCustomersCustomersCustomerQueryListCustomerConnectionPageInfo {
+	return v.PageInfo
+}
+
+// GetEdges returns ListCustomersCustomersCustomerQueryListCustomerConnection.Edges, and is useful for accessing the field via an interface.
+func (v *ListCustomersCustomersCustomerQueryListCustomerConnection) GetEdges() []*ListCustomersCustomersCustomerQueryListCustomerConnectionEdgesCustomerEdge {
+	return v.Edges
+}
+
+// ListCustomersCustomersCustomerQueryListCustomerConnectionEdgesCustomerEdge includes the requested fields of the GraphQL type CustomerEdge.
+type ListCustomersCustomersCustomerQueryListCustomerConnectionEdgesCustomerEdge struct {
+	// Node of the Edge
+	Node *ListCustomersCustomersCustomerQueryListCustomerConnectionEdgesCustomerEdgeNodeCustomer `json:"node"`
+}
+
+// GetNode returns ListCustomersCustomersCustomerQueryListCustomerConnectionEdgesCustomerEdge.Node, and is useful for accessing the field via an interface.
+func (v *ListCustomersCustomersCustomerQueryListCustomerConnectionEdgesCustomerEdge) GetNode() *ListCustomersCustomersCustomerQueryListCustomerConnectionEdgesCustomerEdgeNodeCustomer {
+	return v.Node
+}
+
+// ListCustomersCustomersCustomerQueryListCustomerConnectionEdgesCustomerEdgeNodeCustomer includes the requested fields of the GraphQL type Customer.
+// The GraphQL type's documentation follows.
+//
+// `Customer` represents CRM customer, it assumes no uniqueness
+// of any set of values between different customers, except in the case of a link to an external CRM.
+type ListCustomersCustomersCustomerQueryListCustomerConnectionEdgesCustomerEdgeNodeCustomer struct {
+	// Unique identifier. Unique between all items including those of different types
+	Id string `json:"id"`
+	// Customer honorifics ('Mr', 'さん', '先生', etc.)
+	Honorifics *string `json:"honorifics"`
+	// Given name of the customer
+	GivenName string `json:"givenName"`
+	// Family name of the customer
+	FamilyName string `json:"familyName"`
+	// E-mail address for the customer. Must be a valid e-mail address
+	Email string `json:"email"`
+	// Primary telephone number for the customer
+	Telephone *string `json:"telephone"`
+	// Timestamp at which this item was initially created
+	CreatedAt scalar.Timestamp `json:"createdAt"`
+	// Postal address for the customer
+	Address *ListCustomersCustomersCustomerQueryListCustomerConnectionEdgesCustomerEdgeNodeCustomerAddress `json:"address"`
+}
+
+// GetId returns ListCustomersCustomersCustomerQueryListCustomerConnectionEdgesCustomerEdgeNodeCustomer.Id, and is useful for accessing the field via an interface.
+func (v *ListCustomersCustomersCustomerQueryListCustomerConnectionEdgesCustomerEdgeNodeCustomer) GetId() string {
+	return v.Id
+}
+
+// GetHonorifics returns ListCustomersCustomersCustomerQueryListCustomerConnectionEdgesCustomerEdgeNodeCustomer.Honorifics, and is useful for accessing the field via an interface.
+func (v *ListCustomersCustomersCustomerQueryListCustomerConnectionEdgesCustomerEdgeNodeCustomer) GetHonorifics() *string {
+	return v.Honorifics
+}
+
+// GetGivenName returns ListCustomersCustomersCustomerQueryListCustomerConnectionEdgesCustomerEdgeNodeCustomer.GivenName, and is useful for accessing the field via an interface.
+func (v *ListCustomersCustomersCustomerQueryListCustomerConnectionEdgesCustomerEdgeNodeCustomer) GetGivenName() string {
+	return v.GivenName
+}
+
+// GetFamilyName returns ListCustomersCustomersCustomerQueryListCustomerConnectionEdgesCustomerEdgeNodeCustomer.FamilyName, and is useful for accessing the field via an interface.
+func (v *ListCustomersCustomersCustomerQueryListCustomerConnectionEdgesCustomerEdgeNodeCustomer) GetFamilyName() string {
+	return v.FamilyName
+}
+
+// GetEmail returns ListCustomersCustomersCustomerQueryListCustomerConnectionEdgesCustomerEdgeNodeCustomer.Email, and is useful for accessing the field via an interface.
+func (v *ListCustomersCustomersCustomerQueryListCustomerConnectionEdgesCustomerEdgeNodeCustomer) GetEmail() string {
+	return v.Email
+}
+
+// GetTelephone returns ListCustomersCustomersCustomerQueryListCustomerConnectionEdgesCustomerEdgeNodeCustomer.Telephone, and is useful for accessing the field via an interface.
+func (v *ListCustomersCustomersCustomerQueryListCustomerConnectionEdgesCustomerEdgeNodeCustomer) GetTelephone() *string {
+	return v.Telephone
+}
+
+// GetCreatedAt returns ListCustomersCustomersCustomerQueryListCustomerConnectionEdgesCustomerEdgeNodeCustomer.CreatedAt, and is useful for accessing the field via an interface.
+func (v *ListCustomersCustomersCustomerQueryListCustomerConnectionEdgesCustomerEdgeNodeCustomer) GetCreatedAt() scalar.Timestamp {
+	return v.CreatedAt
+}
+
+// GetAddress returns ListCustomersCustomersCustomerQueryListCustomerConnectionEdgesCustomerEdgeNodeCustomer.Address, and is useful for accessing the field via an interface.
+func (v *ListCustomersCustomersCustomerQueryListCustomerConnectionEdgesCustomerEdgeNodeCustomer) GetAddress() *ListCustomersCustomersCustomerQueryListCustomerConnectionEdgesCustomerEdgeNodeCustomerAddress {
+	return v.Address
+}
+
+// ListCustomersCustomersCustomerQueryListCustomerConnectionEdgesCustomerEdgeNodeCustomerAddress includes the requested fields of the GraphQL type Address.
+// The GraphQL type's documentation follows.
+//
+// `Address` represents a postal address.
+type ListCustomersCustomersCustomerQueryListCustomerConnectionEdgesCustomerEdgeNodeCustomerAddress struct {
+	City string `json:"city"`
+	// ISO country code
+	Country string `json:"country"`
+}
+
+// GetCity returns ListCustomersCustomersCustomerQueryListCustomerConnectionEdgesCustomerEdgeNodeCustomerAddress.City, and is useful for accessing the field via an interface.
+func (v *ListCustomersCustomersCustomerQueryListCustomerConnectionEdgesCustomerEdgeNodeCustomerAddress) GetCity() string {
+	return v.City
+}
+
+// GetCountry returns ListCustomersCustomersCustomerQueryListCustomerConnectionEdgesCustomerEdgeNodeCustomerAddress.Country, and is useful for accessing the field via an interface.
+func (v *ListCustomersCustomersCustomerQueryListCustomerConnectionEdgesCustomerEdgeNodeCustomerAddress) GetCountry() string {
+	return v.Country
+}
+
+// ListCustomersCustomersCustomerQueryListCustomerConnectionPageInfo includes the requested fields of the GraphQL type PageInfo.
+// The GraphQL type's documentation follows.
+//
+// Information about pagination in a connection.
+type ListCustomersCustomersCustomerQueryListCustomerConnectionPageInfo struct {
+	// When paginating forwards, are there more items?
+	HasNextPage bool `json:"hasNextPage"`
+	// When paginating forwards, the cursor to continue.
+	EndCursor *string `json:"endCursor"`
+}
+
+// GetHasNextPage returns ListCustomersCustomersCustomerQueryListCustomerConnectionPageInfo.HasNextPage, and is useful for accessing the field via an interface.
+func (v *ListCustomersCustomersCustomerQueryListCustomerConnectionPageInfo) GetHasNextPage() bool {
+	return v.HasNextPage
+}
+
+// GetEndCursor returns ListCustomersCustomersCustomerQueryListCustomerConnectionPageInfo.EndCursor, and is useful for accessing the field via an interface.
+func (v *ListCustomersCustomersCustomerQueryListCustomerConnectionPageInfo) GetEndCursor() *string {
+	return v.EndCursor
+}
+
+// ListCustomersResponse is returned by ListCustomers on success.
+type ListCustomersResponse struct {
+	// Query Customers
+	Customers ListCustomersCustomersCustomerQuery `json:"customers"`
+}
+
+// GetCustomers returns ListCustomersResponse.Customers, and is useful for accessing the field via an interface.
+func (v *ListCustomersResponse) GetCustomers() ListCustomersCustomersCustomerQuery {
+	return v.Customers
+}
+
+// ListTransactionsResponse is returned by ListTransactions on success.
+type ListTransactionsResponse struct {
+	Transactions ListTransactionsTransactionsTransactionConnection `json:"transactions"`
+}
+
+// GetTransactions returns ListTransactionsResponse.Transactions, and is useful for accessing the field via an interface.
+func (v *ListTransactionsResponse) GetTransactions() ListTransactionsTransactionsTransactionConnection {
+	return v.Transactions
+}
+
+// ListTransactionsTransactionsTransactionConnection includes the requested fields of the GraphQL type TransactionConnection.
+type ListTransactionsTransactionsTransactionConnection struct {
+	// Total count of items in the connection.
+	TotalCount *int `json:"totalCount"`
+	// Page info of the connection
+	PageInfo *ListTransactionsTransactionsTransactionConnectionPageInfo `json:"pageInfo"`
+	// Edges of the connection
+	Edges []*ListTransactionsTransactionsTransactionConnectionEdgesTransactionConnectionEdge `json:"edges"`
+}
+
+// GetTotalCount returns ListTransactionsTransactionsTransactionConnection.TotalCount, and is useful for accessing the field via an interface.
+func (v *ListTransactionsTransactionsTransactionConnection) GetTotalCount() *int { return v.TotalCount }
+
+// GetPageInfo returns ListTransactionsTransactionsTransactionConnection.PageInfo, and is useful for accessing the field via an interface.
+func (v *ListTransactionsTransactionsTransactionConnection) GetPageInfo() *ListTransactionsTransactionsTransactionConnectionPageInfo {
+	return v.PageInfo
+}
+
+// GetEdges returns ListTransactionsTransactionsTransactionConnection.Edges, and is useful for accessing the field via an interface.
+func (v *ListTransactionsTransactionsTransactionConnection) GetEdges() []*ListTransactionsTransactionsTransactionConnectionEdgesTransactionConnectionEdge {
+	return v.Edges
+}
+
+// ListTransactionsTransactionsTransactionConnectionEdgesTransactionConnectionEdge includes the requested fields of the GraphQL type TransactionConnectionEdge.
+type ListTransactionsTransactionsTransactionConnectionEdgesTransactionConnectionEdge struct {
+	// Node of the Edge
+	Node *ListTransactionsTransactionsTransactionConnectionEdgesTransactionConnectionEdgeNodeTransaction `json:"node"`
+}
+
+// GetNode returns ListTransactionsTransactionsTransactionConnectionEdgesTransactionConnectionEdge.Node, and is useful for accessing the field via an interface.
+func (v *ListTransactionsTransactionsTransactionConnectionEdgesTransactionConnectionEdge) GetNode() *ListTransactionsTransactionsTransactionConnectionEdgesTransactionConnectionEdgeNodeTransaction {
+	return v.Node
+}
+
+// ListTransactionsTransactionsTransactionConnectionEdgesTransactionConnectionEdgeNodeTransaction includes the requested fields of the GraphQL type Transaction.
+type ListTransactionsTransactionsTransactionConnectionEdgesTransactionConnectionEdgeNodeTransaction struct {
+	// Unique identifier. Unique between all items including those of different types
+	Id        string  `json:"id"`
+	Reference *string `json:"reference"`
+	// An optional description relating to this transaction
+	Description *string             `json:"description"`
+	Category    TransactionCategory `json:"category"`
+	Status      PaymentStatus       `json:"status"`
+	// Timestamp at which this item was initially created
+	CreatedAt scalar.Timestamp                                                                                           `json:"createdAt"`
+	Amount    *ListTransactionsTransactionsTransactionConnectionEdgesTransactionConnectionEdgeNodeTransactionAmountMoney `json:"amount"`
+	Booking   ListTransactionsTransactionsTransactionConnectionEdgesTransactionConnectionEdgeNodeTransactionBooking      `json:"booking"`
+}
+
+// GetId returns ListTransactionsTransactionsTransactionConnectionEdgesTransactionConnectionEdgeNodeTransaction.Id, and is useful for accessing the field via an interface.
+func (v *ListTransactionsTransactionsTransactionConnectionEdgesTransactionConnectionEdgeNodeTransaction) GetId() string {
+	return v.Id
+}
+
+// GetReference returns ListTransactionsTransactionsTransactionConnectionEdgesTransactionConnectionEdgeNodeTransaction.Reference, and is useful for accessing the field via an interface.
+func (v *ListTransactionsTransactionsTransactionConnectionEdgesTransactionConnectionEdgeNodeTransaction) GetReference() *string {
+	return v.Reference
+}
+
+// GetDescription returns ListTransactionsTransactionsTransactionConnectionEdgesTransactionConnectionEdgeNodeTransaction.Description, and is useful for accessing the field via an interface.
+func (v *ListTransactionsTransactionsTransactionConnectionEdgesTransactionConnectionEdgeNodeTransaction) GetDescription() *string {
+	return v.Description
+}
+
+// GetCategory returns ListTransactionsTransactionsTransactionConnectionEdgesTransactionConnectionEdgeNodeTransaction.Category, and is useful for accessing the field via an interface.
+func (v *ListTransactionsTransactionsTransactionConnectionEdgesTransactionConnectionEdgeNodeTransaction) GetCategory() TransactionCategory {
+	return v.Category
+}
+
+// GetStatus returns ListTransactionsTransactionsTransactionConnectionEdgesTransactionConnectionEdgeNodeTransaction.Status, and is useful for accessing the field via an interface.
+func (v *ListTransactionsTransactionsTransactionConnectionEdgesTransactionConnectionEdgeNodeTransaction) GetStatus() PaymentStatus {
+	return v.Status
+}
+
+// GetCreatedAt returns ListTransactionsTransactionsTransactionConnectionEdgesTransactionConnectionEdgeNodeTransaction.CreatedAt, and is useful for accessing the field via an interface.
+func (v *ListTransactionsTransactionsTransactionConnectionEdgesTransactionConnectionEdgeNodeTransaction) GetCreatedAt() scalar.Timestamp {
+	return v.CreatedAt
+}
+
+// GetAmount returns ListTransactionsTransactionsTransactionConnectionEdgesTransactionConnectionEdgeNodeTransaction.Amount, and is useful for accessing the field via an interface.
+func (v *ListTransactionsTransactionsTransactionConnectionEdgesTransactionConnectionEdgeNodeTransaction) GetAmount() *ListTransactionsTransactionsTransactionConnectionEdgesTransactionConnectionEdgeNodeTransactionAmountMoney {
+	return v.Amount
+}
+
+// GetBooking returns ListTransactionsTransactionsTransactionConnectionEdgesTransactionConnectionEdgeNodeTransaction.Booking, and is useful for accessing the field via an interface.
+func (v *ListTransactionsTransactionsTransactionConnectionEdgesTransactionConnectionEdgeNodeTransaction) GetBooking() ListTransactionsTransactionsTransactionConnectionEdgesTransactionConnectionEdgeNodeTransactionBooking {
+	return v.Booking
+}
+
+// ListTransactionsTransactionsTransactionConnectionEdgesTransactionConnectionEdgeNodeTransactionAmountMoney includes the requested fields of the GraphQL type Money.
+// The GraphQL type's documentation follows.
+//
+// Monetary value
+type ListTransactionsTransactionsTransactionConnectionEdgesTransactionConnectionEdgeNodeTransactionAmountMoney struct {
+	// Monetary amount represented as an integer of the smallest currency denomination
+	Amount int `json:"amount"`
+	// Currency Code
+	Currency string `json:"currency"`
+}
+
+// GetAmount returns ListTransactionsTransactionsTransactionConnectionEdgesTransactionConnectionEdgeNodeTransactionAmountMoney.Amount, and is useful for accessing the field via an interface.
+func (v *ListTransactionsTransactionsTransactionConnectionEdgesTransactionConnectionEdgeNodeTransactionAmountMoney) GetAmount() int {
+	return v.Amount
+}
+
+// GetCurrency returns ListTransactionsTransactionsTransactionConnectionEdgesTransactionConnectionEdgeNodeTransactionAmountMoney.Currency, and is useful for accessing the field via an interface.
+func (v *ListTransactionsTransactionsTransactionConnectionEdgesTransactionConnectionEdgeNodeTransactionAmountMoney) GetCurrency() string {
+	return v.Currency
+}
+
+// ListTransactionsTransactionsTransactionConnectionEdgesTransactionConnectionEdgeNodeTransactionBooking includes the requested fields of the GraphQL type Booking.
+type ListTransactionsTransactionsTransactionConnectionEdgesTransactionConnectionEdgeNodeTransactionBooking struct {
+	// Unique identifier. Unique between all items including those of different types
+	Id string `json:"id"`
+	// A human-readable reference to the booking which is unique within an Organization
+	Reference string `json:"reference"`
+	// An optional reference to a customer who owns the Booking
+	Customer *ListTransactionsTransactionsTransactionConnectionEdgesTransactionConnectionEdgeNodeTransactionBookingCustomer `json:"customer"`
+}
+
+// GetId returns ListTransactionsTransactionsTransactionConnectionEdgesTransactionConnectionEdgeNodeTransactionBooking.Id, and is useful for accessing the field via an interface.
+func (v *ListTransactionsTransactionsTransactionConnectionEdgesTransactionConnectionEdgeNodeTransactionBooking) GetId() string {
+	return v.Id
+}
+
+// GetReference returns ListTransactionsTransactionsTransactionConnectionEdgesTransactionConnectionEdgeNodeTransactionBooking.Reference, and is useful for accessing the field via an interface.
+func (v *ListTransactionsTransactionsTransactionConnectionEdgesTransactionConnectionEdgeNodeTransactionBooking) GetReference() string {
+	return v.Reference
+}
+
+// GetCustomer returns ListTransactionsTransactionsTransactionConnectionEdgesTransactionConnectionEdgeNodeTransactionBooking.Customer, and is useful for accessing the field via an interface.
+func (v *ListTransactionsTransactionsTransactionConnectionEdgesTransactionConnectionEdgeNodeTransactionBooking) GetCustomer() *ListTransactionsTransactionsTransactionConnectionEdgesTransactionConnectionEdgeNodeTransactionBookingCustomer {
+	return v.Customer
+}
+
+// ListTransactionsTransactionsTransactionConnectionEdgesTransactionConnectionEdgeNodeTransactionBookingCustomer includes the requested fields of the GraphQL type Customer.
+// The GraphQL type's documentation follows.
+//
+// `Customer` represents CRM customer, it assumes no uniqueness
+// of any set of values between different customers, except in the case of a link to an external CRM.
+type ListTransactionsTransactionsTransactionConnectionEdgesTransactionConnectionEdgeNodeTransactionBookingCustomer struct {
+	// Given name of the customer
+	GivenName string `json:"givenName"`
+	// Family name of the customer
+	FamilyName string `json:"familyName"`
+}
+
+// GetGivenName returns ListTransactionsTransactionsTransactionConnectionEdgesTransactionConnectionEdgeNodeTransactionBookingCustomer.GivenName, and is useful for accessing the field via an interface.
+func (v *ListTransactionsTransactionsTransactionConnectionEdgesTransactionConnectionEdgeNodeTransactionBookingCustomer) GetGivenName() string {
+	return v.GivenName
+}
+
+// GetFamilyName returns ListTransactionsTransactionsTransactionConnectionEdgesTransactionConnectionEdgeNodeTransactionBookingCustomer.FamilyName, and is useful for accessing the field via an interface.
+func (v *ListTransactionsTransactionsTransactionConnectionEdgesTransactionConnectionEdgeNodeTransactionBookingCustomer) GetFamilyName() string {
+	return v.FamilyName
+}
+
+// ListTransactionsTransactionsTransactionConnectionPageInfo includes the requested fields of the GraphQL type PageInfo.
+// The GraphQL type's documentation follows.
+//
+// Information about pagination in a connection.
+type ListTransactionsTransactionsTransactionConnectionPageInfo struct {
+	// When paginating forwards, are there more items?
+	HasNextPage bool `json:"hasNextPage"`
+	// When paginating forwards, the cursor to continue.
+	EndCursor *string `json:"endCursor"`
+}
+
+// GetHasNextPage returns ListTransactionsTransactionsTransactionConnectionPageInfo.HasNextPage, and is useful for accessing the field via an interface.
+func (v *ListTransactionsTransactionsTransactionConnectionPageInfo) GetHasNextPage() bool {
+	return v.HasNextPage
+}
+
+// GetEndCursor returns ListTransactionsTransactionsTransactionConnectionPageInfo.EndCursor, and is useful for accessing the field via an interface.
+func (v *ListTransactionsTransactionsTransactionConnectionPageInfo) GetEndCursor() *string {
+	return v.EndCursor
+}
 
 type NumericFilter struct {
 	Minimum *float64 `json:"minimum"`
@@ -2155,6 +2860,18 @@ func (v *ProviderFilters) GetCreatedAt() *TimestampFilter { return v.CreatedAt }
 // GetUpdatedAt returns ProviderFilters.UpdatedAt, and is useful for accessing the field via an interface.
 func (v *ProviderFilters) GetUpdatedAt() *TimestampFilter { return v.UpdatedAt }
 
+type Sex string
+
+const (
+	SexMale   Sex = "MALE"
+	SexFemale Sex = "FEMALE"
+)
+
+var AllSex = []Sex{
+	SexMale,
+	SexFemale,
+}
+
 // SliceEnd includes the GraphQL fields of TransportSliceTermination requested by the fragment SliceEnd.
 type SliceEnd struct {
 	Timestamp scalar.Timestamp          `json:"timestamp"`
@@ -2329,6 +3046,37 @@ var AllTransactionCategory = []TransactionCategory{
 	TransactionCategoryBankTransfer,
 }
 
+type TransactionFilters struct {
+	Reference      *StringFilter       `json:"reference"`
+	AmountCurrency *StringChoiceFilter `json:"amountCurrency"`
+	AmountValue    *NumericFilter      `json:"amountValue"`
+	Booking        *BookingFilters     `json:"booking"`
+	Id             *IDsFilter          `json:"id"`
+	CreatedAt      *TimestampFilter    `json:"createdAt"`
+	UpdatedAt      *TimestampFilter    `json:"updatedAt"`
+}
+
+// GetReference returns TransactionFilters.Reference, and is useful for accessing the field via an interface.
+func (v *TransactionFilters) GetReference() *StringFilter { return v.Reference }
+
+// GetAmountCurrency returns TransactionFilters.AmountCurrency, and is useful for accessing the field via an interface.
+func (v *TransactionFilters) GetAmountCurrency() *StringChoiceFilter { return v.AmountCurrency }
+
+// GetAmountValue returns TransactionFilters.AmountValue, and is useful for accessing the field via an interface.
+func (v *TransactionFilters) GetAmountValue() *NumericFilter { return v.AmountValue }
+
+// GetBooking returns TransactionFilters.Booking, and is useful for accessing the field via an interface.
+func (v *TransactionFilters) GetBooking() *BookingFilters { return v.Booking }
+
+// GetId returns TransactionFilters.Id, and is useful for accessing the field via an interface.
+func (v *TransactionFilters) GetId() *IDsFilter { return v.Id }
+
+// GetCreatedAt returns TransactionFilters.CreatedAt, and is useful for accessing the field via an interface.
+func (v *TransactionFilters) GetCreatedAt() *TimestampFilter { return v.CreatedAt }
+
+// GetUpdatedAt returns TransactionFilters.UpdatedAt, and is useful for accessing the field via an interface.
+func (v *TransactionFilters) GetUpdatedAt() *TimestampFilter { return v.UpdatedAt }
+
 type TransportMode string
 
 const (
@@ -2352,6 +3100,14 @@ type __GetBookingInput struct {
 
 // GetId returns __GetBookingInput.Id, and is useful for accessing the field via an interface.
 func (v *__GetBookingInput) GetId() string { return v.Id }
+
+// __GetCustomerInput is used internally by genqlient
+type __GetCustomerInput struct {
+	Id string `json:"id"`
+}
+
+// GetId returns __GetCustomerInput.Id, and is useful for accessing the field via an interface.
+func (v *__GetCustomerInput) GetId() string { return v.Id }
 
 // __ListBookingsInput is used internally by genqlient
 type __ListBookingsInput struct {
@@ -2380,6 +3136,54 @@ func (v *__ListBookingsInput) GetSortBy() *BookingListSort { return v.SortBy }
 
 // GetDirection returns __ListBookingsInput.Direction, and is useful for accessing the field via an interface.
 func (v *__ListBookingsInput) GetDirection() *SortDirection { return v.Direction }
+
+// __ListCustomersInput is used internally by genqlient
+type __ListCustomersInput struct {
+	OrganizationId string           `json:"organizationId"`
+	Filters        *CustomerFilters `json:"filters"`
+	First          *int             `json:"first"`
+	After          *string          `json:"after"`
+	SortBy         *CustomerSort    `json:"sortBy"`
+	Direction      *SortDirection   `json:"direction"`
+}
+
+// GetOrganizationId returns __ListCustomersInput.OrganizationId, and is useful for accessing the field via an interface.
+func (v *__ListCustomersInput) GetOrganizationId() string { return v.OrganizationId }
+
+// GetFilters returns __ListCustomersInput.Filters, and is useful for accessing the field via an interface.
+func (v *__ListCustomersInput) GetFilters() *CustomerFilters { return v.Filters }
+
+// GetFirst returns __ListCustomersInput.First, and is useful for accessing the field via an interface.
+func (v *__ListCustomersInput) GetFirst() *int { return v.First }
+
+// GetAfter returns __ListCustomersInput.After, and is useful for accessing the field via an interface.
+func (v *__ListCustomersInput) GetAfter() *string { return v.After }
+
+// GetSortBy returns __ListCustomersInput.SortBy, and is useful for accessing the field via an interface.
+func (v *__ListCustomersInput) GetSortBy() *CustomerSort { return v.SortBy }
+
+// GetDirection returns __ListCustomersInput.Direction, and is useful for accessing the field via an interface.
+func (v *__ListCustomersInput) GetDirection() *SortDirection { return v.Direction }
+
+// __ListTransactionsInput is used internally by genqlient
+type __ListTransactionsInput struct {
+	OrganizationId string              `json:"organizationId"`
+	Filters        *TransactionFilters `json:"filters"`
+	First          *int                `json:"first"`
+	After          *string             `json:"after"`
+}
+
+// GetOrganizationId returns __ListTransactionsInput.OrganizationId, and is useful for accessing the field via an interface.
+func (v *__ListTransactionsInput) GetOrganizationId() string { return v.OrganizationId }
+
+// GetFilters returns __ListTransactionsInput.Filters, and is useful for accessing the field via an interface.
+func (v *__ListTransactionsInput) GetFilters() *TransactionFilters { return v.Filters }
+
+// GetFirst returns __ListTransactionsInput.First, and is useful for accessing the field via an interface.
+func (v *__ListTransactionsInput) GetFirst() *int { return v.First }
+
+// GetAfter returns __ListTransactionsInput.After, and is useful for accessing the field via an interface.
+func (v *__ListTransactionsInput) GetAfter() *string { return v.After }
 
 // The query executed by GetBooking.
 const GetBooking_Operation = `
@@ -2543,6 +3347,87 @@ func GetBooking(
 	return data_, err_
 }
 
+// The query executed by GetCustomer.
+const GetCustomer_Operation = `
+query GetCustomer ($id: ID!) {
+	customers {
+		customer(id: $id) {
+			id
+			honorifics
+			givenName
+			familyName
+			knownAs
+			email
+			telephone
+			dateOfBirth
+			sex
+			tags
+			createdAt
+			updatedAt
+			address {
+				line1
+				line2
+				line3
+				city
+				state
+				postalCode
+				country
+			}
+			bookings {
+				id
+				reference
+				status
+				description
+				createdAt
+				dates {
+					start
+					end
+				}
+				totalPrice {
+					amount
+					currency
+				}
+				outstandingBalance {
+					amount
+					currency
+				}
+			}
+			notes {
+				id
+				title
+				content
+				createdAt
+			}
+		}
+	}
+}
+`
+
+func GetCustomer(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	id string,
+) (data_ *GetCustomerResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "GetCustomer",
+		Query:  GetCustomer_Operation,
+		Variables: &__GetCustomerInput{
+			Id: id,
+		},
+	}
+
+	data_ = &GetCustomerResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
 // The query executed by ListBookings.
 const ListBookings_Operation = `
 query ListBookings ($organizationId: ID!, $filters: BookingFilters, $first: Int, $after: String, $sortBy: BookingListSort, $direction: SortDirection) {
@@ -2602,6 +3487,137 @@ func ListBookings(
 	}
 
 	data_ = &ListBookingsResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
+// The query executed by ListCustomers.
+const ListCustomers_Operation = `
+query ListCustomers ($organizationId: ID!, $filters: CustomerFilters, $first: Int, $after: String, $sortBy: CustomerSort, $direction: SortDirection) {
+	customers {
+		list(organizationId: $organizationId, filters: $filters, first: $first, after: $after, sortBy: $sortBy, direction: $direction) {
+			totalCount
+			pageInfo {
+				hasNextPage
+				endCursor
+			}
+			edges {
+				node {
+					id
+					honorifics
+					givenName
+					familyName
+					email
+					telephone
+					createdAt
+					address {
+						city
+						country
+					}
+				}
+			}
+		}
+	}
+}
+`
+
+func ListCustomers(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organizationId string,
+	filters *CustomerFilters,
+	first *int,
+	after *string,
+	sortBy *CustomerSort,
+	direction *SortDirection,
+) (data_ *ListCustomersResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "ListCustomers",
+		Query:  ListCustomers_Operation,
+		Variables: &__ListCustomersInput{
+			OrganizationId: organizationId,
+			Filters:        filters,
+			First:          first,
+			After:          after,
+			SortBy:         sortBy,
+			Direction:      direction,
+		},
+	}
+
+	data_ = &ListCustomersResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
+// The query executed by ListTransactions.
+const ListTransactions_Operation = `
+query ListTransactions ($organizationId: ID!, $filters: TransactionFilters, $first: Int, $after: String) {
+	transactions(organizationId: $organizationId, filters: $filters, first: $first, after: $after) {
+		totalCount
+		pageInfo {
+			hasNextPage
+			endCursor
+		}
+		edges {
+			node {
+				id
+				reference
+				description
+				category
+				status
+				createdAt
+				amount {
+					amount
+					currency
+				}
+				booking {
+					id
+					reference
+					customer {
+						givenName
+						familyName
+					}
+				}
+			}
+		}
+	}
+}
+`
+
+func ListTransactions(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organizationId string,
+	filters *TransactionFilters,
+	first *int,
+	after *string,
+) (data_ *ListTransactionsResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "ListTransactions",
+		Query:  ListTransactions_Operation,
+		Variables: &__ListTransactionsInput{
+			OrganizationId: organizationId,
+			Filters:        filters,
+			First:          first,
+			After:          after,
+		},
+	}
+
+	data_ = &ListTransactionsResponse{}
 	resp_ := &graphql.Response{Data: data_}
 
 	err_ = client_.MakeRequest(

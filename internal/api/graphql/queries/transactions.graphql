@@ -1,0 +1,41 @@
+query ListTransactions(
+  $organizationId: ID!
+  $filters: TransactionFilters
+  $first: Int
+  $after: String
+) {
+  transactions(
+    organizationId: $organizationId
+    filters: $filters
+    first: $first
+    after: $after
+  ) {
+    totalCount
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+    edges {
+      node {
+        id
+        reference
+        description
+        category
+        status
+        createdAt
+        amount {
+          amount
+          currency
+        }
+        booking {
+          id
+          reference
+          customer {
+            givenName
+            familyName
+          }
+        }
+      }
+    }
+  }
+}
