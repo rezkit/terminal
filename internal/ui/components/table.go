@@ -292,7 +292,7 @@ func (t *Table) Update(msg tea.Msg) tea.Cmd {
 		t.page = msg.page
 		t.inner.SetRows(t.displayRows())
 		t.inner.SetCursor(0) // after the rows: with none, bubbles clamps the cursor to -1
-		if t.hasFormat() { // the cursor row is formatted plain
+		if t.hasFormat() {   // the cursor row is formatted plain
 			t.inner.SetRows(t.displayRows())
 		}
 		if next := msg.page.Info.NextCursor; next != "" {

@@ -117,7 +117,8 @@ func TestWorkspaceToBookingsFlow(t *testing.T) {
 
 	// Open a booking, then go back.
 	h.key("enter")
-	h.mustContain("Booking RZ-10000", "1 Overview", "payment pending")
+	h.mustContain("Booking RZ-10000", "1 Overview", "NEEDS ATTENTION")
+	h.mustNotContain("payment pending")
 	h.key("esc")
 	h.mustContain("Reference ▲")
 }

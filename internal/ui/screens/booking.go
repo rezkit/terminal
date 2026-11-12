@@ -360,7 +360,8 @@ func (b *Booking) overview(w int) string {
 }
 
 // attention lists what an agent should look at: unconfirmed reservations,
-// pending payments, cancelled passengers.
+// cancelled passengers. Pending payments are not a concern: they are
+// initialised but not yet resolved.
 func (b *Booking) attention() []string {
 	d := b.detail
 	var out []string
@@ -373,12 +374,6 @@ func (b *Booking) attention() []string {
 			msg += ": " + r.StatusMessage
 		}
 		out = append(out, theme.Warn.Render("▲ ")+theme.Bold.Render(orDash(r.Product))+theme.Muted.Render(" · ")+msg)
-	}
-	for _, t := range d.Transactions {
-		if t.Status == "PENDING" {
-			out = append(out, theme.Warn.Render("▲ ")+theme.Bold.Render(orDash(t.Reference))+" "+
-				priceOrDash(t.Amount)+" payment pending")
-		}
 	}
 	for _, p := range d.Passengers {
 		if !p.Cancelled.IsZero() {
