@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	itinStatusW = 13 // "● Waitlisted" plus a gap
+	itinStatusW = 12 // "Waitlisted" plus a gap
 	itinPriceW  = 12
 	itinMinTrak = 18 // narrower than this and a timeline is useless
 )
@@ -136,7 +136,7 @@ func (it itinerary) row(r api.Reservation, selected, expanded bool) string {
 		label = lipgloss.NewStyle().Width(w).Render(
 			components.Truncate(theme.Accent2.Render(gutter)+productLabel(r, false), w))
 	}
-	status := lipgloss.NewStyle().Width(itinStatusW).Render(badge(r.Status))
+	status := lipgloss.NewStyle().Width(itinStatusW).Render(statusText(r.Status, false))
 	return label + " " + status + it.track(r) + fmt.Sprintf("%*s", itinPriceW+1, priceOrDash(r.Price))
 }
 

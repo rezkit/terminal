@@ -14,9 +14,27 @@ import (
 
 // Formatting helpers shared by the detail screens.
 
-func badge(status string) string {
-	return lipgloss.NewStyle().Foreground(theme.StatusColor(status)).Render("● " + api.StatusLabel(status))
+// statusText is a status label coloured by status: confirmed green, errors
+// red and bold, cancelled and void grey and struck through, pending in the
+// normal text colour. plain drops the styling (for highlighted rows, where
+// nested colours would cut through the selection background).
+func statusText(status string, plain bool) string {
+	label := api.StatusLabel(status)
+	if plain {
+		return label
+	}
+	style := lipgloss.NewStyle().Foreground(theme.StatusColor(status))
+	switch status {
+	case "ERROR", "FAILED":
+		style = style.Bold(true)
+	case "CANCELLED", "VOID":
+		style = style.Strikethrough(true)
+	}
+	return style.Render(label)
 }
+
+// badge is a status inline in text.
+func badge(status string) string { return statusText(status, false) }
 
 func heading(title string, n int) string {
 	h := theme.Heading.Render(strings.ToUpper(title))

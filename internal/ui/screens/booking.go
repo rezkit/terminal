@@ -435,7 +435,7 @@ func (b *Booking) payments(w int) string {
 			g.Dim[i] = true
 		}
 		g.Rows = append(g.Rows, []string{stamp(t.Created), orDash(t.Reference), orDash(t.Description),
-			api.StatusLabel(t.Category), badge(t.Status), priceOrDash(t.Amount)})
+			api.StatusLabel(t.Category), statusText(t.Status, false), priceOrDash(t.Amount)})
 	}
 	return g.Render(w) + "\n\n" + summary
 }
@@ -534,10 +534,7 @@ func (b *Booking) invoice(w int) string {
 		Flex:     0,
 	}
 	for i, r := range d.Reservations {
-		status := badge(r.Status)
-		if i == b.cursor { // nested colours would cut through the highlight
-			status = "● " + api.StatusLabel(r.Status)
-		}
+		status := statusText(r.Status, i == b.cursor) // plain when highlighted
 		if r.Status == "CANCELLED" {
 			g.Dim[i] = true
 		}

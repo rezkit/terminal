@@ -42,7 +42,7 @@ func NewBookings(svc api.Service) *Bookings {
 	cols := []components.Column{
 		// Only columns the API can sort by server-side get a SortKey.
 		{Title: "Reference", SortKey: api.SortReference, MinWidth: 10},
-		{Title: "Status", MinWidth: 11},
+		{Title: "Status", MinWidth: 11, Format: statusText},
 		{Title: "Description", SortKey: api.SortDescription, Weight: 3, MinWidth: 14},
 		{Title: "Customer", Weight: 2, MinWidth: 14},
 		{Title: "Start", MinWidth: 11},
@@ -69,7 +69,7 @@ func (b *Bookings) load(ctx context.Context, q api.BookingQuery) (components.Tab
 	for _, bk := range res.Items {
 		out.IDs = append(out.IDs, bk.ID)
 		out.Rows = append(out.Rows, table.Row{
-			bk.Reference, api.StatusLabel(bk.Status), bk.Description, bk.Customer,
+			bk.Reference, bk.Status, bk.Description, bk.Customer,
 			dateOrDash(bk.StartDate), api.FormatMoney(bk.Total), dateOrDash(bk.CreatedAt),
 		})
 	}

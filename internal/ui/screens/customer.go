@@ -410,10 +410,7 @@ func (c *Customer) bookings(w, h int) string {
 		Flex:     2,
 	}
 	for i, b := range d.Bookings {
-		status := badge(b.Status)
-		if i == c.cursor { // nested colours would cut through the highlight
-			status = "● " + api.StatusLabel(b.Status)
-		}
+		status := statusText(b.Status, i == c.cursor) // plain when highlighted
 		if b.Status == "CANCELLED" {
 			g.Dim[i] = true
 		}

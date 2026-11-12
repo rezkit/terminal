@@ -37,7 +37,7 @@ func NewTransactions(svc api.Service) *Transactions {
 		{Title: "Customer", Weight: 2, MinWidth: 14},
 		{Title: "Description", Weight: 2, MinWidth: 12},
 		{Title: "Method", MinWidth: 13},
-		{Title: "Status", MinWidth: 10},
+		{Title: "Status", MinWidth: 10, Format: statusText},
 		{Title: "Amount", MinWidth: 12, Right: true},
 	}
 	t.table = components.NewTable(transactionsTable, cols, t.fetch, api.Sort{})
@@ -60,7 +60,7 @@ func (t *Transactions) fetch(_ api.Sort, page api.PageRequest) func(context.Cont
 			out.IDs = append(out.IDs, tx.BookingID)
 			out.Rows = append(out.Rows, table.Row{
 				stamp(tx.Created), orDash(tx.Reference), orDash(tx.BookingRef), orDash(tx.Customer),
-				orDash(tx.Description), api.StatusLabel(tx.Category), api.StatusLabel(tx.Status), priceOrDash(tx.Amount),
+				orDash(tx.Description), api.StatusLabel(tx.Category), tx.Status, priceOrDash(tx.Amount),
 			})
 		}
 		return out, nil

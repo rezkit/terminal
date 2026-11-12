@@ -191,3 +191,49 @@ func TestItineraryLegs(t *testing.T) {
 		}
 	}
 }
+
+func TestStatusText(t *testing.T) {
+	for _, s := range []string{"PENDING", "CONFIRMED", "ERROR", "CANCELLED", "ON_HOLD"} {
+		if got, want := stripANSI(statusText(s, false)), api.StatusLabel(s); got != want {
+			t.Errorf("%s: %q, want %q", s, got, want)
+		}
+		if got := statusText(s, true); got != api.StatusLabel(s) {
+			t.Errorf("%s: plain = %q", s, got)
+		}
+	}
+	if c := statusText("CANCELLED", false); !strings.Contains(c, "\x1b[9") && !strings.Contains(c, ";9m") && !strings.Contains(c, ";9;") {
+		t.Errorf("cancelled is not struck through: %q", c)
+	}
+	if c := statusText("PENDING", false); !strings.Contains(c, "237;237;237") {
+		t.Errorf("pending should use the normal text colour: %q", c)
+	}
+	if c := statusText("CONFIRMED", false); !strings.Contains(c, "48;164;108") {
+		t.Errorf("confirmed should be green: %q", c)
+	}
+}
+
+// The list tables colour statuses, except on the highlighted row.
+func TestBookingsListColoursStatus(t *testing.T) {
+	h := newHarness(t, api.NewFake())
+	h.key("enter")
+	view := h.view()
+	if !strings.Contains(view, statusText("CONFIRMED", false)) {
+		t.Fatal("no coloured Confirmed status in the bookings list")
+	}
+	h.mustNotContain("CONFIRMED", "ON_HOLD") // raw enum values never leak
+	first := func() string {
+		for _, l := range strings.Split(h.view(), "\n") {
+			if strings.Contains(l, "RZ-") {
+				return l
+			}
+		}
+		return ""
+	}
+	if row := first(); strings.Count(row, "\x1b[") > 2 { // highlight only, no nested colours
+		t.Errorf("highlighted row has nested styling: %q", row)
+	}
+	h.send(tea.KeyPressMsg{Code: tea.KeyDown})
+	if row := first(); !strings.Contains(stripANSI(row), "RZ-") || strings.Count(row, "\x1b[") <= 2 && !strings.Contains(row, "\x1b[38;2;") {
+		t.Errorf("first row was not restyled after moving off it: %q", row)
+	}
+}

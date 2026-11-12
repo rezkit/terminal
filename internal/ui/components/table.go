@@ -25,6 +25,10 @@ type Column struct {
 	Weight   int    // share of spare width (default 1)
 	MinWidth int
 	Right    bool // right-align (numbers, money)
+	// Format, when set, styles a cell's raw value for display. selected is
+	// true on the highlighted row, where it should return plain text: nested
+	// colours would cut through the selection background.
+	Format func(value string, selected bool) string
 }
 
 // TablePage is one page of rows, with a parallel slice of row IDs.
@@ -227,16 +231,23 @@ func (t *Table) fitWidths(widths []int) {
 	}
 }
 
-// displayRows returns the current page with right-aligned cells padded to
+// displayRows returns the current page with cells formatted and right-aligned
+// cells padded to
 // their column width (the bubbles table only left-aligns).
 func (t *Table) displayRows() []table.Row {
-	cols := t.inner.Columns()
+	cols, cursor := t.inner.Columns(), t.inner.Cursor()
 	rows := make([]table.Row, len(t.page.Rows))
 	for r, row := range t.page.Rows {
 		rows[r] = slices.Clone(row)
 		for i, c := range t.columns {
-			if c.Right && i < len(row) && i < len(cols) {
-				rows[r][i] = padLeft(row[i], cols[i].Width)
+			if i >= len(row) || i >= len(cols) {
+				continue
+			}
+			if c.Format != nil {
+				rows[r][i] = c.Format(row[i], r == cursor)
+			}
+			if c.Right {
+				rows[r][i] = padLeft(rows[r][i], cols[i].Width)
 			}
 		}
 	}
@@ -280,7 +291,10 @@ func (t *Table) Update(msg tea.Msg) tea.Cmd {
 		}
 		t.page = msg.page
 		t.inner.SetRows(t.displayRows())
-		t.inner.SetCursor(0)
+		t.inner.SetCursor(0) // after the rows: with none, bubbles clamps the cursor to -1
+		if t.hasFormat() { // the cursor row is formatted plain
+			t.inner.SetRows(t.displayRows())
+		}
 		if next := msg.page.Info.NextCursor; next != "" {
 			t.cursors = append(t.cursors[:t.pageIdx+1], next)
 			t.offsets = append(t.offsets[:t.pageIdx+1], t.offsets[t.pageIdx]+len(msg.page.Rows))
@@ -333,7 +347,11 @@ func (t *Table) Update(msg tea.Msg) tea.Cmd {
 			return t.load()
 		}
 		var cmd tea.Cmd
+		before := t.inner.Cursor()
 		t.inner, cmd = t.inner.Update(msg)
+		if t.inner.Cursor() != before && t.hasFormat() { // move the plain (highlighted) row
+			t.inner.SetRows(t.displayRows())
+		}
 		return cmd
 	}
 	return nil
@@ -375,4 +393,8 @@ func (t *Table) footer() string {
 		return theme.Error.Render(strings.Join(append(parts, "error: "+t.err.Error()), " · "))
 	}
 	return theme.Muted.Render(strings.Join(parts, " · "))
+}
+
+func (t *Table) hasFormat() bool {
+	return slices.ContainsFunc(t.columns, func(c Column) bool { return c.Format != nil })
 }
