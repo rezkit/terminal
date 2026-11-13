@@ -4,6 +4,8 @@ A read-only terminal UI for RezKit. Browse bookings,
 customers and transactions across your RezKit workspaces without leaving the
 terminal.
 
+![rezkit's bookings list on a green-screen terminal](docs/screenshot.svg)
+
 ## Install
 
 Download the binary for your platform from the
