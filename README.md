@@ -1,80 +1,134 @@
 # rezkit
 
-A read-only terminal UI for RezKit, built with Go and Bubble Tea v2.
+A read-only terminal UI for RezKit. Browse bookings,
+customers and transactions across your RezKit workspaces without leaving the
+terminal.
 
-## Quick start
+## Install
+
+Download the binary for your platform from the
+[latest release](https://github.com/rezkit/terminal/releases/latest). Each
+release has `rezkit-darwin-arm64` (Apple Silicon Macs),
+`rezkit-linux-amd64`, `rezkit-linux-arm64` and `rezkit-windows-amd64.exe`.
+
+### macOS and Linux
+
+Pick the file for your machine, make it executable and put it on your `PATH`:
 
 ```sh
-go build -o bin/rezkit ./cmd/rezkit   # or: make build
-./bin/rezkit --demo                   # sample data, no login needed
-./bin/rezkit login                    # device-code login via Logto
-./bin/rezkit                          # browse your organizations
+# macOS (Apple Silicon); on Linux use rezkit-linux-amd64 or rezkit-linux-arm64
+curl -fLO https://github.com/rezkit/terminal/releases/latest/download/rezkit-darwin-arm64
+chmod +x rezkit-darwin-arm64
+sudo mv rezkit-darwin-arm64 /usr/local/bin/rezkit
 ```
 
-Keys: `tab`/`1-3` switch between Bookings, Customers and Transactions · `enter` open ·
-`/` filter · `x` clear filter · `s`/`S` sort column/direction ·
-`n`/`p` page · `ctrl+r` reload · `w` switch workspace · `esc` back · `?` help · `q` quit.
+Downloaded files aren't executable until you `chmod +x` them. On macOS,
+download with `curl` as above: a binary downloaded in a browser is
+quarantined, and macOS will refuse to open it because it isn't signed.
+
+To check a download, fetch `checksums.txt` from the same release and compare
+before moving the file, e.g. on Linux:
+
+```sh
+curl -fLO https://github.com/rezkit/terminal/releases/latest/download/checksums.txt
+sha256sum --ignore-missing -c checksums.txt
+```
+
+### Windows
+
+In PowerShell, download the `.exe` and move it to a folder on your `PATH`:
+
+```powershell
+Invoke-WebRequest -OutFile rezkit.exe https://github.com/rezkit/terminal/releases/latest/download/rezkit-windows-amd64.exe
+```
+
+Windows may warn that the file is from an unrecognised publisher, because it
+isn't signed.
+
+### With Go
+
+```sh
+go install github.com/rezkit/terminal/cmd/rezkit@latest
+```
+
+Builds installed this way report their version as `dev`.
+
+## Getting started
+
+```sh
+rezkit --demo   # try it with built-in sample data, no account needed
+rezkit login    # sign in to RezKit
+rezkit          # browse your workspaces
+```
+
+`rezkit login` shows a URL and a code and opens your browser; approve the
+sign-in there and the terminal picks it up. You can also sign in from inside
+the app. Other commands:
+
+| Command | |
+|---|---|
+| `rezkit whoami` | Show who you're signed in as |
+| `rezkit logout` | Forget stored credentials |
+| `rezkit version` | Show the version |
+| `rezkit help` | Show usage, including where your config lives |
+
+### Keys
+
+| Key | Action |
+|---|---|
+| `tab`, `1`–`3` | Switch between Bookings, Customers and Transactions |
+| `enter` | Open the selected item |
+| `/` | Filter the list · `x` clears the filter |
+| `s` / `S` | Change sort column / direction |
+| `n` / `p` | Next / previous page |
+| `ctrl+r` | Reload |
+| `w` | Switch workspace |
+| `esc` | Back |
+| `?` | Show all keys for the current screen |
+| `q` | Quit |
 
 ## Configuration
 
-`~/.config/rezkit-tui/config.toml` (override the directory with `REZKIT_CONFIG_DIR`).
-Everything defaults to RezKit production, so the file is optional:
+Everything defaults to RezKit production, so most people need no
+configuration. Settings live in `config.toml` in the config directory:
+
+| OS | Config directory |
+|---|---|
+| Linux | `~/.config/rezkit-tui` (or `$XDG_CONFIG_HOME/rezkit-tui`) |
+| macOS | `~/Library/Application Support/rezkit-tui` |
+| Windows | `%AppData%\rezkit-tui` |
+
+Set `REZKIT_CONFIG_DIR` to use a different directory. The file is optional;
+these are the defaults:
 
 ```toml
 issuer    = "https://auth.rezkit.app/oidc"
 client_id = "aeajwp2w42rdv4mcn7jki"
-resource  = "https://api.rezkit.app/sales"        # Logto API resource indicator
+resource  = "https://api.rezkit.app/sales"
 endpoint  = "https://api.rezkit.app/api/graphql"
 scopes    = []                                     # extra API scopes, if needed
 ```
 
-Each key has a `REZKIT_*` environment override (`REZKIT_ISSUER`, `REZKIT_CLIENT_ID`,
-`REZKIT_RESOURCE`, `REZKIT_ENDPOINT`, `REZKIT_SCOPES`). Money is formatted for the
-shell locale (`LC_ALL`, then `LC_MONETARY`, then `LANG`); set `REZKIT_LOCALE`
-(e.g. `en-GB`, `de_DE.UTF-8`) to override it. `REZKIT_NO_BROWSER=1`
-stops the app opening a browser at login (the URL and code are always shown).
+Each setting can also be set with an environment variable: `REZKIT_ISSUER`,
+`REZKIT_CLIENT_ID`, `REZKIT_RESOURCE`, `REZKIT_ENDPOINT` and `REZKIT_SCOPES`.
+If you change `resource`, log in again.
 
-Tokens are kept in the OS keychain, or in a `0600` `token.json` in the config
-directory when no keychain is available (typical on WSL). Refresh tokens are
-rotated and saved automatically. If you change `resource`, log in again.
+Other environment variables:
 
-The last-used workspace is stored in `state.toml`; the app never rewrites
+| Variable | Effect |
+|---|---|
+| `REZKIT_LOCALE` | Locale for formatting money, e.g. `en-GB` or `de_DE.UTF-8`. Defaults to your shell's locale (`LC_ALL`, then `LC_MONETARY`, then `LANG`). |
+| `REZKIT_NO_BROWSER=1` | Don't open a browser when signing in; the URL and code are still shown. |
+
+Your sign-in is kept in the OS keychain. Where there's no keychain (common on
+WSL), it's saved in `token.json` in the config directory, readable only by
+you. The app remembers your last workspace in `state.toml` and never rewrites
 `config.toml`.
 
-## Layout
+## Development
 
-| Path | Purpose |
-|---|---|
-| `cmd/rezkit` | Entry point and subcommands |
-| `internal/auth` | Device authorization grant with PKCE, refresh with resource indicator, token storage |
-| `internal/api` | `Service` interface and plain types used by the UI; `RezKit` adapter; `Fake` for demo/tests |
-| `internal/api/graphql` | Schema, queries and the genqlient-generated client |
-| `internal/api/scalar` | Go types for custom scalars (`Timestamp`) |
-| `internal/ui` | Root app: screen stack, modal layer, header/status/help |
-| `internal/ui/components` | Server-paginated, server-sorted `Table`; static `Grid`; text helpers |
-| `internal/ui/screens` | Login, workspace picker, home sections (bookings, customers, transactions lists with filter modals), booking screen (tabs; invoice/itinerary), customer screen (tabs; bookings open the booking), generic detail view (unused) |
-
-## GraphQL client
-
-Workspaces are RezKit organizations; the selected organization is passed as
-the `organizationId` argument. Bookings, customers and transactions use Relay-style
-connections, so paging is cursor-based and sorting is server-side (bookings:
-reference, description, created; customers: family name, email, city, created).
-The transactions query takes no sort argument, so that list has a fixed order
-and opening a transaction shows its booking's payments.
-
-To change what is fetched:
-
-1. Edit `internal/api/graphql/queries/*.graphql`.
-2. `go generate ./internal/api/graphql` (or `make generate`).
-3. Map the generated types to the `api` types in `internal/api/rezkit*.go`.
-
-Refresh the schema with `rezkit dev schema` (introspection works without
-logging in). The server returns fields in no fixed order, so a refreshed
-schema may show reordering noise in diffs.
-
-The API reports fields the caller can't read as `null` with a warning, not
-an error; the adapter turns that into "access denied (try logging in again)".
+See [AGENTS.md](AGENTS.md) for building from source, the code layout and the
+release process.
 
 ## License
 
