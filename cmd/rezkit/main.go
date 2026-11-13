@@ -234,9 +234,10 @@ func cmdDev(ctx context.Context, cfg *config.Config, args []string) error {
 func runTUI(ctx context.Context, cfg *config.Config, demo bool) error {
 	api.SetLocale(api.LocaleFromEnv())
 	var (
-		svc   api.Service
-		start ui.Screen
-		user  string
+		svc      api.Service
+		observed *api.Observed
+		start    ui.Screen
+		user     string
 	)
 	state, err := config.LoadState()
 	if err != nil {
@@ -251,7 +252,8 @@ func runTUI(ctx context.Context, cfg *config.Config, demo bool) error {
 	if demo {
 		fake := api.NewFake()
 		fake.Latency = 250 * time.Millisecond
-		svc, user = fake, "demo"
+		observed = api.Observe(fake)
+		svc, user = observed, "demo"
 		start = screens.NewWorkspaces(svc, "", nil)
 		picker = func() ui.Screen { return screens.NewWorkspaces(svc, "", nil) }
 	} else {
@@ -261,7 +263,8 @@ func runTUI(ctx context.Context, cfg *config.Config, demo bool) error {
 		}
 		// The token is read from the store lazily, so a login completed on the
 		// TUI's login screen takes effect without a restart.
-		svc = api.NewRezKit(cfg.Endpoint, api.NewHTTPClient(s.auth.StoreTokenSource(s.store)))
+		observed = api.Observe(api.NewRezKit(cfg.Endpoint, api.NewHTTPClient(s.auth.StoreTokenSource(s.store))))
+		svc = observed
 		resume := func() ui.Screen { return screens.NewWorkspaces(svc, state.LastWorkspace, saveWorkspace) }
 		_, tok, err := s.tokenSource()
 		switch {
@@ -279,7 +282,14 @@ func runTUI(ctx context.Context, cfg *config.Config, demo bool) error {
 		WorkspacePicker: picker,
 		Home:            func(api.Workspace) ui.Screen { return screens.NewHome(svc) },
 	}, start, user)
-	_, err = tea.NewProgram(app, tea.WithContext(ctx)).Run()
+	p := tea.NewProgram(app, tea.WithContext(ctx))
+	// Service calls only run inside commands, never on the event loop, so
+	// Send (which waits for the loop) cannot deadlock here.
+	observed.SetHooks(api.Hooks{
+		Started:  func() { p.Send(ui.RequestStartedMsg{}) },
+		Finished: func(d time.Duration) { p.Send(ui.RequestFinishedMsg{Elapsed: d}) },
+	})
+	_, err = p.Run()
 	if errors.Is(err, tea.ErrProgramKilled) && ctx.Err() != nil {
 		return nil
 	}

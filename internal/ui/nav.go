@@ -3,6 +3,8 @@
 package ui
 
 import (
+	"time"
+
 	"charm.land/bubbles/v2/help"
 	tea "charm.land/bubbletea/v2"
 
@@ -46,6 +48,10 @@ type (
 	WorkspaceSelectedMsg struct{ Workspace api.Workspace }
 	// LoggedInMsg is sent when authentication completes in the TUI.
 	LoggedInMsg struct{}
+	// RequestStartedMsg and RequestFinishedMsg report API activity, shown
+	// on the right of the status bar.
+	RequestStartedMsg  struct{}
+	RequestFinishedMsg struct{ Elapsed time.Duration }
 )
 
 // Cmd helpers.

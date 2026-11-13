@@ -1,14 +1,18 @@
 package ui
 
 import (
+	"fmt"
 	"strings"
+	"time"
 
 	"charm.land/bubbles/v2/help"
 	"charm.land/bubbles/v2/key"
+	"charm.land/bubbles/v2/spinner"
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 
 	"github.com/rezkit/terminal/internal/api"
+	"github.com/rezkit/terminal/internal/ui/components"
 	"github.com/rezkit/terminal/internal/ui/theme"
 )
 
@@ -32,6 +36,12 @@ type App struct {
 	status        StatusMsg
 	help          help.Model
 	keys          globalKeys
+
+	// API activity: requests in flight (loads can overlap) and the duration
+	// of the last one to finish (zero until one has).
+	inFlight    int
+	lastRequest time.Duration
+	spinner     spinner.Model
 }
 
 type globalKeys struct {
@@ -51,7 +61,8 @@ func newGlobalKeys() globalKeys {
 func NewApp(routes Routes, start Screen, user string) *App {
 	h := help.New()
 	h.Styles = help.DefaultDarkStyles()
-	return &App{routes: routes, stack: []Screen{start}, user: user, help: h, keys: newGlobalKeys()}
+	return &App{routes: routes, stack: []Screen{start}, user: user, help: h, keys: newGlobalKeys(),
+		spinner: spinner.New(spinner.WithSpinner(spinner.Dot))}
 }
 
 func (a *App) top() Screen { return a.stack[len(a.stack)-1] }
@@ -107,6 +118,18 @@ func (a *App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		a.status = msg
 		return a, nil
 
+	case RequestStartedMsg:
+		a.inFlight++
+		if a.inFlight == 1 {
+			return a, a.spinner.Tick
+		}
+		return a, nil
+
+	case RequestFinishedMsg:
+		a.inFlight = max(a.inFlight-1, 0)
+		a.lastRequest = msg.Elapsed
+		return a, nil
+
 	case WorkspaceSelectedMsg:
 		a.workspace = msg.Workspace
 		a.status = StatusMsg{Text: "Workspace: " + msg.Workspace.Name}
@@ -136,6 +159,11 @@ func (a *App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// and to every screen on the stack, so background loads for screens
 	// below the top still land. Screens drop responses they did not ask for.
 	var cmds []tea.Cmd
+	if tick, ok := msg.(spinner.TickMsg); ok && a.inFlight > 0 {
+		var cmd tea.Cmd
+		a.spinner, cmd = a.spinner.Update(tick)
+		cmds = append(cmds, cmd)
+	}
 	if a.modal != nil {
 		var cmd tea.Cmd
 		a.modal, cmd = a.modal.Update(msg)
@@ -228,9 +256,29 @@ func (a *App) footerView() string {
 		if a.status.Error {
 			st = theme.Error
 		}
-		status = st.MaxWidth(max(a.width, 1)).Render(a.status.Text)
+		status = st.Render(a.status.Text)
 	}
+	status = components.Spread(max(a.width, 1), status, a.activityView())
 	return lipgloss.JoinVertical(lipgloss.Left, status, a.help.View(helpKeys{a.top(), a.keys, len(a.stack) > 1}))
+}
+
+// activityView is the right side of the status bar: a spinner while API
+// requests are in flight, otherwise how long the last one took.
+func (a *App) activityView() string {
+	switch {
+	case a.inFlight > 0:
+		return a.spinner.View() + theme.Muted.Render(" Loading…")
+	case a.lastRequest > 0:
+		return theme.Muted.Render("Last request " + formatElapsed(a.lastRequest))
+	}
+	return ""
+}
+
+func formatElapsed(d time.Duration) string {
+	if d < time.Second {
+		return fmt.Sprintf("%dms", d.Milliseconds())
+	}
+	return fmt.Sprintf("%.1fs", d.Seconds())
 }
 
 func (a *App) View() tea.View {

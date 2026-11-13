@@ -386,9 +386,6 @@ func (t *Table) footer() string {
 	if t.page.Info.HasNext() {
 		parts = append(parts, "more →")
 	}
-	if t.loading {
-		parts = append(parts, t.spinner.View()+" loading")
-	}
 	if t.err != nil && len(t.page.Rows) > 0 {
 		return theme.Error.Render(strings.Join(append(parts, "error: "+t.err.Error()), " · "))
 	}
