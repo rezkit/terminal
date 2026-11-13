@@ -33,6 +33,9 @@ checksum:
 release:
   # Tags like v1.2.0-rc.1 are published as pre-releases.
   prerelease: auto
+  # One copy for all platforms, attached next to the binaries.
+  extra_files:
+    - glob: ./LICENSE
 
 changelog:
   sort: asc

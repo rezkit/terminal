@@ -75,3 +75,7 @@ schema may show reordering noise in diffs.
 
 The API reports fields the caller can't read as `null` with a warning, not
 an error; the adapter turns that into "access denied (try logging in again)".
+
+## License
+
+MIT. See [LICENSE](LICENSE).
