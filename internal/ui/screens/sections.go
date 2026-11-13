@@ -7,9 +7,9 @@ import (
 	"charm.land/bubbles/v2/key"
 	tea "charm.land/bubbletea/v2"
 
-	"github.com/rezkit/tui/internal/api"
-	"github.com/rezkit/tui/internal/ui"
-	"github.com/rezkit/tui/internal/ui/theme"
+	"github.com/rezkit/terminal/internal/api"
+	"github.com/rezkit/terminal/internal/ui"
+	"github.com/rezkit/terminal/internal/ui/theme"
 )
 
 // Sections is the workspace home: the top-level lists (Bookings, Customers,

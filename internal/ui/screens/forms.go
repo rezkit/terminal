@@ -8,8 +8,8 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"charm.land/huh/v2"
 
-	"github.com/rezkit/tui/internal/ui"
-	"github.com/rezkit/tui/internal/ui/theme"
+	"github.com/rezkit/terminal/internal/ui"
+	"github.com/rezkit/terminal/internal/ui/theme"
 )
 
 // formModal is a huh form in a modal: submit builds the result message,

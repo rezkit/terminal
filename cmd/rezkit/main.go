@@ -1,4 +1,4 @@
-// Command rezkit-tui is a terminal UI for browsing RezKit data.
+// Command rezkit is a terminal UI for browsing RezKit data.
 package main
 
 import (
@@ -15,26 +15,26 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"golang.org/x/oauth2"
 
-	"github.com/rezkit/tui/internal/api"
-	"github.com/rezkit/tui/internal/auth"
-	"github.com/rezkit/tui/internal/browser"
-	"github.com/rezkit/tui/internal/config"
-	"github.com/rezkit/tui/internal/ui"
-	"github.com/rezkit/tui/internal/ui/screens"
+	"github.com/rezkit/terminal/internal/api"
+	"github.com/rezkit/terminal/internal/auth"
+	"github.com/rezkit/terminal/internal/browser"
+	"github.com/rezkit/terminal/internal/config"
+	"github.com/rezkit/terminal/internal/ui"
+	"github.com/rezkit/terminal/internal/ui/screens"
 )
 
 var version = "dev"
 
-const usage = `rezkit-tui — terminal UI for RezKit
+const usage = `rezkit — terminal UI for RezKit
 
 Usage:
-  rezkit-tui [--demo]        start the TUI (--demo uses built-in sample data)
-  rezkit-tui login           log in with a device code
-  rezkit-tui logout          forget stored credentials
-  rezkit-tui whoami          show the logged-in user
-  rezkit-tui dev schema [-o file]
-                             introspect the API and write the GraphQL schema
-  rezkit-tui version
+  rezkit [--demo]    start the TUI (--demo uses built-in sample data)
+  rezkit login       log in with a device code
+  rezkit logout      forget stored credentials
+  rezkit whoami      show the logged-in user
+  rezkit dev schema [-o file]
+                         introspect the API and write the GraphQL schema
+  rezkit version
 
 Configuration: %s
 (environment overrides: REZKIT_ISSUER, REZKIT_CLIENT_ID, REZKIT_RESOURCE, REZKIT_LOCALE,
@@ -63,7 +63,7 @@ func run(args []string) error {
 	}
 	switch cmd {
 	case "":
-		fs := flag.NewFlagSet("rezkit-tui", flag.ContinueOnError)
+		fs := flag.NewFlagSet("rezkit", flag.ContinueOnError)
 		demo := fs.Bool("demo", false, "use built-in sample data instead of the API")
 		fs.Usage = func() { fmt.Fprintf(os.Stderr, usage, cfg.Path()) }
 		if err := fs.Parse(args); err != nil {
@@ -85,7 +85,7 @@ func run(args []string) error {
 		fmt.Printf(usage, cfg.Path())
 		return nil
 	default:
-		return fmt.Errorf("unknown command %q (try 'rezkit-tui help')", cmd)
+		return fmt.Errorf("unknown command %q (try 'rezkit help')", cmd)
 	}
 }
 
@@ -200,7 +200,7 @@ func cmdWhoami(cfg *config.Config) error {
 
 func cmdDev(ctx context.Context, cfg *config.Config, args []string) error {
 	if len(args) == 0 || args[0] != "schema" {
-		return errors.New("usage: rezkit-tui dev schema [-o file]")
+		return errors.New("usage: rezkit dev schema [-o file]")
 	}
 	fs := flag.NewFlagSet("dev schema", flag.ContinueOnError)
 	out := fs.String("o", filepath.Join("internal", "api", "graphql", "schema.graphql"), "output file")

@@ -6,7 +6,7 @@ import (
 	"charm.land/bubbles/v2/help"
 	tea "charm.land/bubbletea/v2"
 
-	"github.com/rezkit/tui/internal/api"
+	"github.com/rezkit/terminal/internal/api"
 )
 
 // Screen is one full-page view on the navigation stack.

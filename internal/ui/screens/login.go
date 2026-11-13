@@ -10,10 +10,10 @@ import (
 	"charm.land/bubbles/v2/spinner"
 	tea "charm.land/bubbletea/v2"
 
-	"github.com/rezkit/tui/internal/auth"
-	"github.com/rezkit/tui/internal/browser"
-	"github.com/rezkit/tui/internal/ui"
-	"github.com/rezkit/tui/internal/ui/theme"
+	"github.com/rezkit/terminal/internal/auth"
+	"github.com/rezkit/terminal/internal/browser"
+	"github.com/rezkit/terminal/internal/ui"
+	"github.com/rezkit/terminal/internal/ui/theme"
 )
 
 // LoginFunc runs the device login, calling show with the code to display.

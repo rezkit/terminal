@@ -9,9 +9,9 @@ import (
 	"charm.land/bubbles/v2/spinner"
 	tea "charm.land/bubbletea/v2"
 
-	"github.com/rezkit/tui/internal/api"
-	"github.com/rezkit/tui/internal/ui"
-	"github.com/rezkit/tui/internal/ui/theme"
+	"github.com/rezkit/terminal/internal/api"
+	"github.com/rezkit/terminal/internal/ui"
+	"github.com/rezkit/terminal/internal/ui/theme"
 )
 
 // Workspaces lets the user pick an organization workspace.

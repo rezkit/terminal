@@ -1,4 +1,4 @@
-// Package config loads rezkit-tui settings from the user config directory,
+// Package config loads rezkit settings from the user config directory,
 // with environment variable overrides.
 package config
 

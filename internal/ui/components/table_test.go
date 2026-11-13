@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/rezkit/tui/internal/api"
+	"github.com/rezkit/terminal/internal/api"
 )
 
 func TestTableColumnsFitNarrowWidths(t *testing.T) {

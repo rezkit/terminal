@@ -7,7 +7,7 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 
-	"github.com/rezkit/tui/internal/api"
+	"github.com/rezkit/terminal/internal/api"
 )
 
 func (h *harness) mustFit(width int) {

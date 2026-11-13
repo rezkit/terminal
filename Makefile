@@ -1,4 +1,4 @@
-BIN      := bin/rezkit-tui
+BIN      := bin/rezkit
 # Strip the tag's leading "v" so local builds report versions the same way as releases.
 VERSION  ?= $(patsubst v%,%,$(shell git describe --tags --always --dirty 2>/dev/null || echo dev))
 LDFLAGS  := -s -w -X main.version=$(VERSION)
@@ -10,7 +10,7 @@ CROSS_TARGETS := darwin/arm64 linux/amd64 linux/arm64 windows/amd64
 .PHONY: build run demo test lint generate schema clean cross
 
 build:
-	CGO_ENABLED=0 go build -trimpath -ldflags '$(LDFLAGS)' -o $(BIN) ./cmd/rezkit-tui
+	CGO_ENABLED=0 go build -trimpath -ldflags '$(LDFLAGS)' -o $(BIN) ./cmd/rezkit
 
 run: build
 	./$(BIN)
@@ -25,7 +25,7 @@ test:
 lint:
 	@if command -v golangci-lint >/dev/null; then golangci-lint run; else echo "golangci-lint not installed; running go vet"; go vet ./...; fi
 
-# Introspect the live API (requires `rezkit-tui login` and an endpoint in config).
+# Introspect the live API (requires `rezkit login` and an endpoint in config).
 schema: build
 	./$(BIN) dev schema -o $(SCHEMA)
 
@@ -34,13 +34,13 @@ generate:
 	@test -f $(SCHEMA) || { echo "$(SCHEMA) missing: run 'make schema' first"; exit 1; }
 	cd internal/api/graphql && go tool genqlient
 
-# Cross-compile every release target to bin/rezkit-tui-<os>-<arch>[.exe],
+# Cross-compile every release target to bin/rezkit-<os>-<arch>[.exe],
 # named like the release assets.
 cross:
 	@set -e; for t in $(CROSS_TARGETS); do \
 		os=$${t%/*}; arch=$${t#*/}; ext=; [ "$$os" = windows ] && ext=.exe; \
 		out=$(BIN)-$$os-$$arch$$ext; echo "$$out"; \
-		CGO_ENABLED=0 GOOS=$$os GOARCH=$$arch go build -trimpath -ldflags '$(LDFLAGS)' -o $$out ./cmd/rezkit-tui; \
+		CGO_ENABLED=0 GOOS=$$os GOARCH=$$arch go build -trimpath -ldflags '$(LDFLAGS)' -o $$out ./cmd/rezkit; \
 	done
 
 clean:

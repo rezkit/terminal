@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rezkit/tui/internal/api/graphql"
-	"github.com/rezkit/tui/internal/api/scalar"
+	"github.com/rezkit/terminal/internal/api/graphql"
+	"github.com/rezkit/terminal/internal/api/scalar"
 )
 
 // Helpers shared by the RezKit list and detail queries.

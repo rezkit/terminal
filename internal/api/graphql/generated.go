@@ -8,7 +8,7 @@ import (
 	"fmt"
 
 	"github.com/Khan/genqlient/graphql"
-	"github.com/rezkit/tui/internal/api/scalar"
+	"github.com/rezkit/terminal/internal/api/scalar"
 )
 
 type AddressFilter struct {

@@ -6,7 +6,7 @@ import (
 	"charm.land/lipgloss/v2"
 	"charm.land/lipgloss/v2/table"
 
-	"github.com/rezkit/tui/internal/ui/theme"
+	"github.com/rezkit/terminal/internal/ui/theme"
 )
 
 // Grid is a static, borderless table with a header rule, for detail views.

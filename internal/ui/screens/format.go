@@ -7,9 +7,9 @@ import (
 
 	"charm.land/lipgloss/v2"
 
-	"github.com/rezkit/tui/internal/api"
-	"github.com/rezkit/tui/internal/ui/components"
-	"github.com/rezkit/tui/internal/ui/theme"
+	"github.com/rezkit/terminal/internal/api"
+	"github.com/rezkit/terminal/internal/ui/components"
+	"github.com/rezkit/terminal/internal/ui/theme"
 )
 
 // Formatting helpers shared by the detail screens.

@@ -11,8 +11,8 @@ import (
 
 	gql "github.com/Khan/genqlient/graphql"
 
-	"github.com/rezkit/tui/internal/api/graphql"
-	"github.com/rezkit/tui/internal/api/scalar"
+	"github.com/rezkit/terminal/internal/api/graphql"
+	"github.com/rezkit/terminal/internal/api/scalar"
 )
 
 // ErrAccessDenied is returned when the API answers with null data, which is

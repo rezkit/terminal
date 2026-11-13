@@ -1,14 +1,14 @@
-# rezkit-tui
+# rezkit
 
 A read-only terminal UI for RezKit, built with Go and Bubble Tea v2.
 
 ## Quick start
 
 ```sh
-go build -o bin/rezkit-tui ./cmd/rezkit-tui   # or: make build
-./bin/rezkit-tui --demo                       # sample data, no login needed
-./bin/rezkit-tui login                        # device-code login via Logto
-./bin/rezkit-tui                              # browse your organizations
+go build -o bin/rezkit ./cmd/rezkit   # or: make build
+./bin/rezkit --demo                   # sample data, no login needed
+./bin/rezkit login                    # device-code login via Logto
+./bin/rezkit                          # browse your organizations
 ```
 
 Keys: `tab`/`1-3` switch between Bookings, Customers and Transactions · `enter` open ·
@@ -45,7 +45,7 @@ The last-used workspace is stored in `state.toml`; the app never rewrites
 
 | Path | Purpose |
 |---|---|
-| `cmd/rezkit-tui` | Entry point and subcommands |
+| `cmd/rezkit` | Entry point and subcommands |
 | `internal/auth` | Device authorization grant with PKCE, refresh with resource indicator, token storage |
 | `internal/api` | `Service` interface and plain types used by the UI; `RezKit` adapter; `Fake` for demo/tests |
 | `internal/api/graphql` | Schema, queries and the genqlient-generated client |
@@ -69,7 +69,7 @@ To change what is fetched:
 2. `go generate ./internal/api/graphql` (or `make generate`).
 3. Map the generated types to the `api` types in `internal/api/rezkit*.go`.
 
-Refresh the schema with `rezkit-tui dev schema` (introspection works without
+Refresh the schema with `rezkit dev schema` (introspection works without
 logging in). The server returns fields in no fixed order, so a refreshed
 schema may show reordering noise in diffs.
 

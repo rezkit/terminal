@@ -1,4 +1,4 @@
-module github.com/rezkit/tui
+module github.com/rezkit/terminal
 
 go 1.27.3
 

@@ -8,8 +8,8 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 
-	"github.com/rezkit/tui/internal/api"
-	"github.com/rezkit/tui/internal/ui/theme"
+	"github.com/rezkit/terminal/internal/api"
+	"github.com/rezkit/terminal/internal/ui/theme"
 )
 
 // Routes lets the app build screens without importing the screens package.

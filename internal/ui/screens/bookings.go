@@ -11,9 +11,9 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"charm.land/huh/v2"
 
-	"github.com/rezkit/tui/internal/api"
-	"github.com/rezkit/tui/internal/ui"
-	"github.com/rezkit/tui/internal/ui/components"
+	"github.com/rezkit/terminal/internal/api"
+	"github.com/rezkit/terminal/internal/ui"
+	"github.com/rezkit/terminal/internal/ui/components"
 )
 
 const bookingsTable = "bookings"
