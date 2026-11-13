@@ -11,17 +11,28 @@ builds:
       - -trimpath
     ldflags:
       - -s -w -X main.version={{ .Version }}
-    goos: [linux, darwin, windows]
-    goarch: [amd64, arm64]
+    # Stamp files with the commit time so rebuilding a tag gives identical binaries.
+    mod_timestamp: "{{ .CommitTimestamp }}"
+    # Keep in sync with CROSS_TARGETS in the Makefile.
+    targets:
+      - darwin_arm64
+      - linux_amd64
+      - linux_arm64
+      - windows_amd64
 
+# Publish bare binaries, not archives. The name leaves out the version so
+# .../releases/latest/download/rezkit-tui-linux-amd64 always points at the newest
+# build. GoReleaser appends .exe for Windows.
 archives:
-  - formats: [tar.gz]
-    format_overrides:
-      - goos: windows
-        formats: [zip]
+  - formats: [binary]
+    name_template: "{{ .ProjectName }}-{{ .Os }}-{{ .Arch }}"
 
 checksum:
   name_template: checksums.txt
+
+release:
+  # Tags like v1.2.0-rc.1 are published as pre-releases.
+  prerelease: auto
 
 changelog:
   sort: asc
