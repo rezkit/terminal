@@ -29,13 +29,14 @@ type Workspaces struct {
 
 type workspaceItem api.Workspace
 
-func (w workspaceItem) Title() string { return w.Name }
-func (w workspaceItem) Description() string {
+// Title shows the name and environment on one line; the list hides descriptions.
+func (w workspaceItem) Title() string {
 	if w.Environment != "" {
-		return w.Environment
+		return w.Name + " · " + w.Environment
 	}
-	return w.ID
+	return w.Name
 }
+func (w workspaceItem) Description() string { return "" }
 func (w workspaceItem) FilterValue() string { return w.Name }
 
 type workspacesLoadedMsg struct {
@@ -46,7 +47,11 @@ type workspacesLoadedMsg struct {
 // NewWorkspaces creates the picker. If preferID matches a workspace it is
 // selected automatically (used to restore the last-used workspace).
 func NewWorkspaces(svc api.Service, preferID string, onSelect func(api.Workspace)) *Workspaces {
-	l := list.New(nil, list.NewDefaultDelegate(), 0, 0)
+	// One line per workspace with no gap between rows.
+	d := list.NewDefaultDelegate()
+	d.ShowDescription = false
+	d.SetSpacing(0)
+	l := list.New(nil, d, 0, 0)
 	l.Title = "Select a workspace"
 	l.SetShowHelp(false) // the app renders help
 	l.SetStatusBarItemName("workspace", "workspaces")
