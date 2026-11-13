@@ -870,6 +870,12 @@ type GetBookingBookingsBookingQueryBookingProductReservationsBookingProductReser
 	GetName() string
 	// GetCategory returns the interface-field "category" from its implementation.
 	GetCategory() string
+	// GetElement returns the interface-field "element" from its implementation.
+	GetElement() *string
+	// GetGroupName returns the interface-field "groupName" from its implementation.
+	GetGroupName() *string
+	// GetProvider returns the interface-field "provider" from its implementation.
+	GetProvider() *GetBookingBookingsBookingQueryBookingProductReservationsBookingProductReservationProductProvider
 }
 
 func (v *GetBookingBookingsBookingQueryBookingProductReservationsBookingProductReservationProductDiscount) implementsGraphQLInterfaceGetBookingBookingsBookingQueryBookingProductReservationsBookingProductReservationProduct() {
@@ -949,9 +955,12 @@ func __marshalGetBookingBookingsBookingQueryBookingProductReservationsBookingPro
 
 // GetBookingBookingsBookingQueryBookingProductReservationsBookingProductReservationProductDiscount includes the requested fields of the GraphQL type Discount.
 type GetBookingBookingsBookingQueryBookingProductReservationsBookingProductReservationProductDiscount struct {
-	Typename *string `json:"__typename"`
-	Name     string  `json:"name"`
-	Category string  `json:"category"`
+	Typename  *string                                                                                           `json:"__typename"`
+	Name      string                                                                                            `json:"name"`
+	Category  string                                                                                            `json:"category"`
+	Element   *string                                                                                           `json:"element"`
+	GroupName *string                                                                                           `json:"groupName"`
+	Provider  *GetBookingBookingsBookingQueryBookingProductReservationsBookingProductReservationProductProvider `json:"provider"`
 }
 
 // GetTypename returns GetBookingBookingsBookingQueryBookingProductReservationsBookingProductReservationProductDiscount.Typename, and is useful for accessing the field via an interface.
@@ -969,11 +978,29 @@ func (v *GetBookingBookingsBookingQueryBookingProductReservationsBookingProductR
 	return v.Category
 }
 
+// GetElement returns GetBookingBookingsBookingQueryBookingProductReservationsBookingProductReservationProductDiscount.Element, and is useful for accessing the field via an interface.
+func (v *GetBookingBookingsBookingQueryBookingProductReservationsBookingProductReservationProductDiscount) GetElement() *string {
+	return v.Element
+}
+
+// GetGroupName returns GetBookingBookingsBookingQueryBookingProductReservationsBookingProductReservationProductDiscount.GroupName, and is useful for accessing the field via an interface.
+func (v *GetBookingBookingsBookingQueryBookingProductReservationsBookingProductReservationProductDiscount) GetGroupName() *string {
+	return v.GroupName
+}
+
+// GetProvider returns GetBookingBookingsBookingQueryBookingProductReservationsBookingProductReservationProductDiscount.Provider, and is useful for accessing the field via an interface.
+func (v *GetBookingBookingsBookingQueryBookingProductReservationsBookingProductReservationProductDiscount) GetProvider() *GetBookingBookingsBookingQueryBookingProductReservationsBookingProductReservationProductProvider {
+	return v.Provider
+}
+
 // GetBookingBookingsBookingQueryBookingProductReservationsBookingProductReservationProductPackage includes the requested fields of the GraphQL type Package.
 type GetBookingBookingsBookingQueryBookingProductReservationsBookingProductReservationProductPackage struct {
-	Typename *string `json:"__typename"`
-	Name     string  `json:"name"`
-	Category string  `json:"category"`
+	Typename  *string                                                                                           `json:"__typename"`
+	Name      string                                                                                            `json:"name"`
+	Category  string                                                                                            `json:"category"`
+	Element   *string                                                                                           `json:"element"`
+	GroupName *string                                                                                           `json:"groupName"`
+	Provider  *GetBookingBookingsBookingQueryBookingProductReservationsBookingProductReservationProductProvider `json:"provider"`
 }
 
 // GetTypename returns GetBookingBookingsBookingQueryBookingProductReservationsBookingProductReservationProductPackage.Typename, and is useful for accessing the field via an interface.
@@ -991,11 +1018,39 @@ func (v *GetBookingBookingsBookingQueryBookingProductReservationsBookingProductR
 	return v.Category
 }
 
+// GetElement returns GetBookingBookingsBookingQueryBookingProductReservationsBookingProductReservationProductPackage.Element, and is useful for accessing the field via an interface.
+func (v *GetBookingBookingsBookingQueryBookingProductReservationsBookingProductReservationProductPackage) GetElement() *string {
+	return v.Element
+}
+
+// GetGroupName returns GetBookingBookingsBookingQueryBookingProductReservationsBookingProductReservationProductPackage.GroupName, and is useful for accessing the field via an interface.
+func (v *GetBookingBookingsBookingQueryBookingProductReservationsBookingProductReservationProductPackage) GetGroupName() *string {
+	return v.GroupName
+}
+
+// GetProvider returns GetBookingBookingsBookingQueryBookingProductReservationsBookingProductReservationProductPackage.Provider, and is useful for accessing the field via an interface.
+func (v *GetBookingBookingsBookingQueryBookingProductReservationsBookingProductReservationProductPackage) GetProvider() *GetBookingBookingsBookingQueryBookingProductReservationsBookingProductReservationProductProvider {
+	return v.Provider
+}
+
+// GetBookingBookingsBookingQueryBookingProductReservationsBookingProductReservationProductProvider includes the requested fields of the GraphQL type ProductProvider.
+type GetBookingBookingsBookingQueryBookingProductReservationsBookingProductReservationProductProvider struct {
+	Name string `json:"name"`
+}
+
+// GetName returns GetBookingBookingsBookingQueryBookingProductReservationsBookingProductReservationProductProvider.Name, and is useful for accessing the field via an interface.
+func (v *GetBookingBookingsBookingQueryBookingProductReservationsBookingProductReservationProductProvider) GetName() string {
+	return v.Name
+}
+
 // GetBookingBookingsBookingQueryBookingProductReservationsBookingProductReservationProductTransport includes the requested fields of the GraphQL type Transport.
 type GetBookingBookingsBookingQueryBookingProductReservationsBookingProductReservationProductTransport struct {
-	Typename *string `json:"__typename"`
-	Name     string  `json:"name"`
-	Category string  `json:"category"`
+	Typename  *string                                                                                           `json:"__typename"`
+	Name      string                                                                                            `json:"name"`
+	Category  string                                                                                            `json:"category"`
+	Element   *string                                                                                           `json:"element"`
+	GroupName *string                                                                                           `json:"groupName"`
+	Provider  *GetBookingBookingsBookingQueryBookingProductReservationsBookingProductReservationProductProvider `json:"provider"`
 }
 
 // GetTypename returns GetBookingBookingsBookingQueryBookingProductReservationsBookingProductReservationProductTransport.Typename, and is useful for accessing the field via an interface.
@@ -1011,6 +1066,21 @@ func (v *GetBookingBookingsBookingQueryBookingProductReservationsBookingProductR
 // GetCategory returns GetBookingBookingsBookingQueryBookingProductReservationsBookingProductReservationProductTransport.Category, and is useful for accessing the field via an interface.
 func (v *GetBookingBookingsBookingQueryBookingProductReservationsBookingProductReservationProductTransport) GetCategory() string {
 	return v.Category
+}
+
+// GetElement returns GetBookingBookingsBookingQueryBookingProductReservationsBookingProductReservationProductTransport.Element, and is useful for accessing the field via an interface.
+func (v *GetBookingBookingsBookingQueryBookingProductReservationsBookingProductReservationProductTransport) GetElement() *string {
+	return v.Element
+}
+
+// GetGroupName returns GetBookingBookingsBookingQueryBookingProductReservationsBookingProductReservationProductTransport.GroupName, and is useful for accessing the field via an interface.
+func (v *GetBookingBookingsBookingQueryBookingProductReservationsBookingProductReservationProductTransport) GetGroupName() *string {
+	return v.GroupName
+}
+
+// GetProvider returns GetBookingBookingsBookingQueryBookingProductReservationsBookingProductReservationProductTransport.Provider, and is useful for accessing the field via an interface.
+func (v *GetBookingBookingsBookingQueryBookingProductReservationsBookingProductReservationProductTransport) GetProvider() *GetBookingBookingsBookingQueryBookingProductReservationsBookingProductReservationProductProvider {
+	return v.Provider
 }
 
 // GetBookingBookingsBookingQueryBookingProductReservationsPackageReservation includes the requested fields of the GraphQL type PackageReservation.
@@ -3258,6 +3328,11 @@ query GetBooking ($id: ID!) {
 					__typename
 					name
 					category
+					element
+					groupName
+					provider {
+						name
+					}
 				}
 				passengers {
 					id

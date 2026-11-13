@@ -68,6 +68,7 @@ func (p Passenger) AgeAt(t time.Time) int {
 
 type Reservation struct {
 	ID, Reference, Product, Category, Description string
+	Element, Group, Supplier                      string // product element (e.g. room type), group name, provider; may be empty
 	Status, StatusMessage                         string
 	Quantity                                      int
 	Start, End, BalanceDue                        time.Time // zero when unknown

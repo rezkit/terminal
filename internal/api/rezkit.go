@@ -189,6 +189,10 @@ func (r *RezKit) Booking(ctx context.Context, id string) (BookingDetail, error) 
 		}
 		if p := pr.GetProduct(); p != nil {
 			res.Product, res.Category = p.GetName(), p.GetCategory()
+			res.Element, res.Group = deref(p.GetElement()), deref(p.GetGroupName())
+			if pv := p.GetProvider(); pv != nil {
+				res.Supplier = pv.Name
+			}
 		}
 		if p := pr.GetPrice(); p != nil {
 			res.Price = &Money{int64(p.Amount), p.Currency}

@@ -113,6 +113,11 @@ query GetBooking($id: ID!) {
         product {
           name
           category
+          element
+          groupName
+          provider {
+            name
+          }
         }
         passengers {
           id

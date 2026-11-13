@@ -31,7 +31,9 @@ var (
 		"Desert Camp Merzouga", "Hotel Explora", "Ryokan Kurashiki", "Villa Cimbrone"}
 	fakeActs = []string{"Guided glacier hike", "Fjord kayak tour", "Camel trek at sunset", "Torres del Paine day walk",
 		"Tea ceremony", "Sailing to Positano", "Golden Circle tour", "Machu Picchu sunrise visit"}
-	fakeNotes = []Note{
+	fakeGroups    = map[string]string{"Accommodation": "Partner hotels", "Activity": "Guided excursions"}
+	fakeSuppliers = map[string]string{"Flight": "SkyLink Air", "Transfer": "Alpine Transfers", "Accommodation": "StayBridge Wholesale"}
+	fakeNotes     = []Note{
 		{Title: "Dietary requirements", Content: "Lead passenger is vegetarian; one child has a severe nut allergy and carries an EpiPen."},
 		{Title: "Room preference", Content: "Quiet rooms away from the lift; interconnecting if possible."},
 		{Title: "Accessibility", Content: "Ground-floor room requested; limited mobility on stairs."},
@@ -94,20 +96,20 @@ func fakeDetail(b Booking, idx int) BookingDetail {
 		split = nights
 	}
 	type item struct {
-		product, category string
-		from, to          int // day offsets
-		weight            int
+		product, category, element string
+		from, to                   int // day offsets
+		weight                     int
 	}
 	items := []item{
-		{"Outbound flight", "Flight", 0, 0, 12},
-		{"Airport transfer", "Transfer", 0, 0, 3},
-		{fakeHotels[r.IntN(len(fakeHotels))] + " · Double room", "Accommodation", 0, split, 30},
-		{fakeActs[r.IntN(len(fakeActs))], "Activity", 1 + r.IntN(max(nights-1, 1)), -1, 8},
+		{"Outbound flight", "Flight", "Economy Light", 0, 0, 12},
+		{"Airport transfer", "Transfer", "Private car (up to 4)", 0, 0, 3},
+		{fakeHotels[r.IntN(len(fakeHotels))], "Accommodation", "Double room, half board", 0, split, 30},
+		{fakeActs[r.IntN(len(fakeActs))], "Activity", "", 1 + r.IntN(max(nights-1, 1)), -1, 8},
 	}
 	if split < nights {
-		items = append(items, item{fakeHotels[r.IntN(len(fakeHotels))] + " · Suite", "Accommodation", split, nights, 30})
+		items = append(items, item{fakeHotels[r.IntN(len(fakeHotels))], "Accommodation", "Junior suite, B&B", split, nights, 30})
 	}
-	items = append(items, item{"Return flight", "Flight", nights, nights, 12})
+	items = append(items, item{"Return flight", "Flight", "Economy Light", nights, nights, 12})
 
 	dest := fakeAirports[r.IntN(len(fakeAirports))]
 	totalW := 0
@@ -123,7 +125,8 @@ func fakeDetail(b Booking, idx int) BookingDetail {
 		remaining -= price
 		res := Reservation{
 			ID: fmt.Sprintf("%s-r%d", b.ID, i+1), Reference: fmt.Sprintf("PR-%05d", idx*10+i+1),
-			Product: it.product, Category: it.category, Status: b.Status, Quantity: 1,
+			Product: it.product, Category: it.category, Element: it.element, Status: b.Status, Quantity: 1,
+			Group: fakeGroups[it.category], Supplier: fakeSuppliers[it.category],
 			Start: start.AddDate(0, 0, it.from), Price: &Money{price, cur},
 			BalanceDue:   start.AddDate(0, 0, -42),
 			PassengerIDs: travelling,
@@ -136,6 +139,12 @@ func fakeDetail(b Booking, idx int) BookingDetail {
 		}
 		if b.Status == "CONFIRMED" && i == 3 && r.IntN(2) == 0 {
 			res.Status, res.StatusMessage = "ON_HOLD", "Awaiting supplier confirmation"
+		}
+		switch it.category { // descriptions are optional free text
+		case "Transfer":
+			res.Description = "Driver meets you in arrivals with a name board"
+		case "Activity":
+			res.Description = "Meet in the hotel lobby at 08:30; bring walking boots"
 		}
 		res.Legs = fakeLegs(r, it.category, i, res.Start, dest, travelling)
 		d.Reservations = append(d.Reservations, res)

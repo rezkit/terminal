@@ -237,3 +237,65 @@ func TestBookingsListColoursStatus(t *testing.T) {
 		t.Errorf("first row was not restyled after moving off it: %q", row)
 	}
 }
+
+func TestReservationElement(t *testing.T) {
+	r := api.Reservation{Product: "Riffelalp Resort", Element: "Double room", Description: "Sea view"}
+	if got := stripANSI(productLabel(r, false)); got != "Riffelalp Resort · Double room  Sea view" {
+		t.Errorf("label = %q", got)
+	}
+	if got := productLabel(r, true); got != "Riffelalp Resort · Double room  Sea view" {
+		t.Errorf("plain label = %q", got)
+	}
+	if got := productLabel(api.Reservation{Product: "Tea ceremony"}, false); got != "Tea ceremony" {
+		t.Errorf("no element = %q", got)
+	}
+
+	h := newHarness(t, api.NewFake())
+	h.key("enter")
+	h.key("enter")
+	h.key("3")
+	h.send(tea.KeyPressMsg{Code: tea.KeyDown})
+	h.send(tea.KeyPressMsg{Code: tea.KeyDown}) // the first hotel
+	h.mustContain("Product  ", "Element  ", " · Double room, half board", "Type Accommodation", "Element Double room, half board",
+		"Group Partner hotels", "Supplier StayBridge Wholesale")
+	h.key("v")
+	h.mustContain(" · Double room, half board", "Element Double room, half board")
+	h.mustFit(140)
+}
+
+func TestInvoiceProductColumnIsNameOnly(t *testing.T) {
+	b := NewBooking("b", nil)
+	b.detail = &api.BookingDetail{Reservations: []api.Reservation{
+		{Product: "Riffelalp Resort", Element: "Double room", Description: "Sea view", Status: "CONFIRMED"},
+		{Product: "Tea ceremony", Status: "PENDING"},
+		{Product: "Return flight", Description: "Flexible fare", Status: "PENDING"},
+	}}
+	b.cursor = 2
+	lines := strings.Split(stripANSI(b.invoice(120)), "\n")
+	want := []string{"Riffelalp Resort  Double room", "Sea view", "Tea ceremony", "Return flight", "Flexible fare"}
+	if len(lines) != 2+len(want) {
+		t.Fatalf("invoice:\n%s", strings.Join(lines, "\n"))
+	}
+	for i, w := range want {
+		if l := lines[2+i]; !strings.HasPrefix(l, w) || (i == 1 || i == 4) && strings.TrimSpace(l) != w {
+			t.Errorf("line %d = %q, want it to start with %q", 2+i, l, w)
+		}
+	}
+}
+
+func TestInvoiceDescriptionWithLineBreaks(t *testing.T) {
+	b := NewBooking("b", nil)
+	b.detail = &api.BookingDetail{Reservations: []api.Reservation{
+		{Product: "Airport transfer", Description: "Driver meets you in arrivals.\n\nCall the office if delayed.", Status: "CONFIRMED"},
+		{Product: "Tea ceremony", Status: "PENDING"},
+	}}
+	got := stripANSI(b.reservations(100, 30))
+	for _, want := range []string{"Driver meets you in arrivals. Call the office if delayed.", "Tea ceremony"} {
+		if !strings.Contains(got, want) {
+			t.Errorf("missing %q:\n%s", want, got)
+		}
+	}
+	if s := stripANSI(b.selectedStrip(100)); strings.Count(s, "\n") != 3 {
+		t.Errorf("selected strip should be a rule and three lines:\n%s", s)
+	}
+}

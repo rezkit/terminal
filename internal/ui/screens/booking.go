@@ -475,9 +475,10 @@ func (b *Booking) reservations(w, h int) string {
 		}
 	} else {
 		lines := strings.Split(b.invoice(w), "\n")
-		head = lines[:2]
+		head, lines = lines[:2], lines[2:]
 		for i := range blocks {
-			blocks[i] = []string{lines[2+i]}
+			n := invoiceRowHeight(d.Reservations[i])
+			blocks[i], lines = lines[:n], lines[n:]
 		}
 	}
 
@@ -522,8 +523,8 @@ func (b *Booking) reservations(w, h int) string {
 func (b *Booking) invoice(w int) string {
 	d := b.detail
 	g := components.Grid{
-		Headers:  []string{"Product", "Type", "Status", "Qty", "Dates", "Balance due", "Price"},
-		Right:    map[int]bool{3: true, 6: true},
+		Headers:  []string{"Product", "Element", "Type", "Status", "Qty", "Dates", "Balance due", "Price"},
+		Right:    map[int]bool{4: true, 7: true},
 		Dim:      map[int]bool{},
 		Selected: b.cursor,
 		Flex:     0,
@@ -533,7 +534,15 @@ func (b *Booking) invoice(w int) string {
 		if r.Status == "CANCELLED" {
 			g.Dim[i] = true
 		}
-		g.Rows = append(g.Rows, []string{productLabel(r, i == b.cursor), orDash(r.Category), status,
+		name := orDash(r.Product)
+		if desc := description(r); desc != "" { // second line, in grey (plain when highlighted)
+			if i != b.cursor {
+				desc = theme.Muted.Render(desc)
+			}
+			name += "\n" + desc
+		}
+		g.Rows = append(g.Rows, []string{name, orDash(r.Element),
+			orDash(r.Category), status,
 			fmt.Sprint(r.Quantity), compactSpan(r.Start, r.End), day(r.BalanceDue), priceOrDash(r.Price)})
 	}
 	return g.Render(w)
@@ -544,8 +553,11 @@ func (b *Booking) selectedStrip(w int) string {
 	d := b.detail
 	r := d.Reservations[b.cursor]
 	line1 := theme.Bold.Render(orDash(r.Product))
-	if r.Description != "" {
-		line1 += theme.Muted.Render("  " + r.Description)
+	if r.Element != "" {
+		line1 += theme.Muted.Render(" · ") + r.Element
+	}
+	if desc := description(r); desc != "" {
+		line1 += theme.Muted.Render("  " + desc)
 	}
 	line1 += "  " + badge(r.Status)
 	if len(r.Legs) > 0 {
@@ -567,26 +579,52 @@ func (b *Booking) selectedStrip(w int) string {
 	line2 := theme.Muted.Render("Dates ") + dateSpan(r.Start, r.End, "Mon 2 Jan 2006") +
 		theme.Muted.Render("   Balance due ") + day(r.BalanceDue) +
 		theme.Muted.Render("   Travellers ") + orDash(strings.Join(names, ", "))
+	line3 := theme.Muted.Render("Type ") + orDash(r.Category) +
+		theme.Muted.Render("   Element ") + orDash(r.Element) +
+		theme.Muted.Render("   Group ") + orDash(r.Group) +
+		theme.Muted.Render("   Supplier ") + orDash(r.Supplier)
 	return theme.Rule.Render(strings.Repeat("─", w)) + "\n" +
-		components.Truncate(line1, w) + "\n" + components.Truncate(line2, w)
+		components.Truncate(line1, w) + "\n" + components.Truncate(line2, w) + "\n" + components.Truncate(line3, w)
 }
 
-// productLabel is the reservation's product name with its description in
-// subtle text. plain drops the styling (for highlighted rows, where nested
-// colours would cut through the selection background).
+// productLabel is the reservation's product name and element ("Hotel ·
+// Double room") with its description in subtle text. plain drops the
+// styling (for highlighted rows, where nested colours would cut through the
+// selection background).
 func productLabel(r api.Reservation, plain bool) string {
-	name := orDash(r.Product)
-	switch {
-	case r.Description == "":
-		return name
-	case plain:
-		return name + "  " + r.Description
+	name, sep, desc := orDash(r.Product), " · ", ""
+	if d := description(r); d != "" {
+		desc = "  " + d
 	}
-	return name + theme.Muted.Render("  "+r.Description)
+	if !plain {
+		sep = theme.Muted.Render(sep)
+		if desc != "" {
+			desc = theme.Muted.Render(desc)
+		}
+	}
+	if r.Element != "" {
+		name += sep + r.Element
+	}
+	return name + desc
 }
 
 // OnPayments opens the screen on the Payments tab (e.g. from a transaction).
 func (b *Booking) OnPayments() *Booking {
 	b.tab = tabPayments
 	return b
+}
+
+// invoiceRowHeight is the lines a reservation takes in the invoice: its
+// name, plus its description underneath when it has one.
+func invoiceRowHeight(r api.Reservation) int {
+	if description(r) != "" {
+		return 2
+	}
+	return 1
+}
+
+// description is the reservation's free-text description on one line, so
+// line breaks in it can't make rows taller than the layout expects.
+func description(r api.Reservation) string {
+	return strings.Join(strings.Fields(r.Description), " ")
 }

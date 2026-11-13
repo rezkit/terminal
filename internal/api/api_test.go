@@ -165,7 +165,8 @@ const bookingJSON = `{"data":{"bookings":{"booking":{
 		 "status": "CONFIRMED", "statusMessage": null, "quantity": 2,
 		 "serviceStart": "2026-06-01T00:00:00Z", "serviceEnd": "2026-06-01T00:00:00Z",
 		 "balanceDue": "2026-05-01T00:00:00Z", "price": {"amount": 10000, "currency": "GBP"},
-		 "product": {"__typename": "Transport", "name": "Flight", "category": "Flight"},
+		 "product": {"__typename": "Transport", "name": "Flight", "category": "Flight",
+				"element": "Economy", "groupName": "Long haul", "provider": {"name": "SkyLink"}},
 		 "passengers": [{"id": "p1"}, {"id": "p2"}],
 		 "slices": [
 			{"id": "sp3", "ticketClass": null, "ticketNumber": null, "seatAllocation": null, "passenger": {"id": "p1"}, "slice": {"id": "s2", "name": null, "mode": "Road", "intermediateStop": false, "carrier": {"name": "Alpine Transfers", "code": null}, "departure": {"timestamp": "2026-06-01T10:00:00Z", "stop": {"code": null, "name": "Geneva Airport", "city": null, "timezone": "Europe/Zurich"}}, "arrival": {"timestamp": "2026-06-01T13:30:00Z", "stop": {"code": null, "name": "Zermatt", "city": null, "timezone": "Not/AZone"}}}},
@@ -199,7 +200,11 @@ func TestRezKitBookingDetail(t *testing.T) {
 		t.Fatalf("reservations = %+v", d.Reservations)
 	}
 	r0, r1 := d.Reservations[0], d.Reservations[1]
-	if r0.Category != "Flight" || r0.Price == nil || r0.Price.Minor != 10000 || len(r0.PassengerIDs) != 2 {
+	if r1.Element != "" || r1.Supplier != "" { // absent product fields stay empty
+		t.Errorf("reservation 1 = %+v", r1)
+	}
+	if r0.Category != "Flight" || r0.Element != "Economy" || r0.Group != "Long haul" || r0.Supplier != "SkyLink" ||
+		r0.Price == nil || r0.Price.Minor != 10000 || len(r0.PassengerIDs) != 2 {
 		t.Errorf("reservation 0 = %+v", r0)
 	}
 	// Per-passenger slice rows group into legs, sorted by departure, with
